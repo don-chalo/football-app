@@ -49,7 +49,7 @@ export function LigaDetailPage(): JSX.Element {
             aria-selected={tab === t}
             type="button"
             onClick={() => { setTab(t); }}
-            className={`flex-1 min-h-[44px] rounded-lg font-medium ${tab === t ? "bg-emerald-700 text-white" : "bg-white border border-stone-200"}`}
+            className={`flex-1 min-h-11 rounded-lg font-medium ${tab === t ? "bg-emerald-700 text-white" : "bg-white border border-stone-200"}`}
           >
             {t === "partidos" ? "Partidos" : t === "tabla" ? (esCopa ? "Llaves" : "Tabla") : "Jugadores"}
           </button>

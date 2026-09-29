@@ -96,12 +96,12 @@ export function CargaVivo({ partidoId, convocatorias, eventos, nombreJugador, no
       {error ? <p className="text-red-700">{mensajeError(error)} (no se registró, reintenta)</p> : null}
 
       <div>
-        <h3 className="font-bold mb-1">Recientes</h3>
+        <h3 className="font-bold mb-1">Goles</h3>
         {eventos.length === 0 ? (
           <p className="text-sm text-stone-500">Sin goles.</p>
         ) : (
           <ul className="flex flex-col gap-1">
-            {[...eventos].reverse().slice(0, 5).map((e) => (
+            {[...eventos].reverse().map((e) => (
               <li key={e.id} className="flex items-center justify-between bg-white border border-stone-200 rounded-lg px-3 min-h-[44px]">
                 <span className="text-sm">
                   {nombreJugador(e.jugadorId)} · <Badge>{e.tipo}</Badge>

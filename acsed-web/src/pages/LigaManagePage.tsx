@@ -38,9 +38,18 @@ export function LigaManagePage(): JSX.Element {
         porFechaDesc(partidos.data).map((p) => (
           <Link key={p.id} to={`/admin/partidos/${p.id}`}>
             <Card>
-              <span className="min-h-11 flex items-center">
-                {mapaEquipos.get(p.localId) ?? "?"} vs {mapaEquipos.get(p.visitaId) ?? "?"} · {p.estado}
-              </span>
+              <div className="min-h-11 flex justify-between">
+                <span className="font-medium">
+                  {mapaEquipos.get(p.localId) ?? "?"} vs {mapaEquipos.get(p.visitaId) ?? "?"}
+                </span>
+                <div className="text-sm text-stone-500 flex gap-2">
+                  {
+                    p.fase && <span>{p.fase || "—"}</span>
+                  }
+                  <span>{p.fecha.slice(0, 10) || "—"}</span>
+                  <span>{p.estado}</span>
+                </div>
+              </div>
             </Card>
           </Link>
         ))
