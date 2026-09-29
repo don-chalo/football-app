@@ -1,0 +1,67 @@
+import { createContext, useCallback, useContext, useMemo, useState, type JSX, type ReactNode } from "react";
+import { api, setToken as guardarToken, getToken } from "../api/client";
+import type { LoginResponse, PublicUser } from "../api/types";
+
+interface Session {
+  user: PublicUser | null;
+  misLigas: string[];
+  login: (username: string, password: string) => Promise<void>;
+  logout: () => void;
+  esSistema: boolean;
+}
+
+const Ctx = createContext<Session | null>(null);
+
+const MIS_LIGAS_KEY = "acsed.misLigas";
+const USER_KEY = "acsed.user";
+
+function leerJSON(key: string): unknown {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as unknown) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function SessionProvider({ children }: { children: ReactNode }): JSX.Element {
+  const [user, setUser] = useState<PublicUser | null>(() => (getToken() ? (leerJSON(USER_KEY) as PublicUser | null) : null));
+  const [misLigas, setMisLigas] = useState<string[]>(() => (leerJSON(MIS_LIGAS_KEY) as string[] | null) ?? []);
+
+  const login = useCallback(async (username: string, password: string): Promise<void> => {
+    const r = await api.post<LoginResponse>("/auth/login", { username, password });
+    guardarToken(r.token);
+    setUser(r.user);
+    setMisLigas(r.misLigas);
+    try {
+      localStorage.setItem(USER_KEY, JSON.stringify(r.user));
+      localStorage.setItem(MIS_LIGAS_KEY, JSON.stringify(r.misLigas));
+    } catch {
+      /* sin persistencia */
+    }
+  }, []);
+
+  const logout = useCallback(() => {
+    guardarToken(null);
+    setUser(null);
+    setMisLigas([]);
+    try {
+      localStorage.removeItem(USER_KEY);
+      localStorage.removeItem(MIS_LIGAS_KEY);
+    } catch {
+      /* sin persistencia */
+    }
+  }, []);
+
+  const value = useMemo<Session>(
+    () => ({ user, misLigas, login, logout, esSistema: user?.role === "admin_usuarios" }),
+    [user, misLigas, login, logout],
+  );
+  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
+}
+
+export function useSession(): Session {
+  const s = useContext(Ctx);
+  if (!s) throw new Error("useSession fuera de SessionProvider");
+  return s;
+}

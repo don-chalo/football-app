@@ -1,0 +1,100 @@
+import type { JSX } from "react";
+import { Link, NavLink, Route, Routes, useNavigate } from "react-router-dom";
+import { SessionProvider, useSession } from "./auth/Session";
+import { RequireAdmin } from "./auth/guards";
+import { AdminHomePage } from "./pages/AdminHomePage";
+import { EstadisticasPage } from "./pages/EstadisticasPage";
+import { GestionPage } from "./pages/GestionPage";
+import { NotFound } from "./pages/HomePage";
+import { LigaDetailPage } from "./pages/LigaDetailPage";
+import { LigaManagePage } from "./pages/LigaManagePage";
+import { LigasPage } from "./pages/LigasPage";
+import { LoginPage } from "./pages/LoginPage";
+import { PartidoFormPage } from "./pages/PartidoFormPage";
+import { PartidoManagePage } from "./pages/PartidoManagePage";
+import { PartidoPage } from "./pages/PartidoPage";
+import * as NavigationMenu from "@radix-ui/react-navigation-menu";
+
+function Barra(): JSX.Element {
+  const { user, logout } = useSession();
+  const nav = useNavigate();
+  return (
+    <header className="sticky top-0 bg-black text-white px-4 min-h-14 flex items-center justify-between">
+      <Link to="/" className="font-bold min-h-11 flex items-center" tool-tip="Ir a la página principal">
+        ACSED WEB
+      </Link>      
+      <NavigationMenu.Root className="relative z-50 hidden sm:block">
+        <NavigationMenu.List className="flex items-center gap-1 sticky top-0 bg-black text-white px-4 min-h-14 justify-end">
+          <NavigationMenu.Item>
+            <NavigationMenu.Link asChild>
+              <NavLink to="/ligas" className="min-h-11 flex items-center bg-black text-white border border-gray-700 rounded-lg px-3">
+                Ligas/Copas
+              </NavLink>
+            </NavigationMenu.Link>
+          </NavigationMenu.Item>
+          <NavigationMenu.Item>
+            <NavigationMenu.Link asChild>
+              <NavLink to="/estadisticas" className="min-h-11 flex items-center bg-black text-white border border-gray-700 rounded-lg px-3">
+                Stats
+              </NavLink>
+            </NavigationMenu.Link>
+          </NavigationMenu.Item>
+         {user ? (
+          <>
+           <NavigationMenu.Item>
+            <NavigationMenu.Link asChild>              
+             <NavLink className="min-h-11 flex items-center bg-black text-white border border-gray-700 rounded-lg px-3" to="/admin">
+               Admin
+             </NavLink>
+            </NavigationMenu.Link>
+           </NavigationMenu.Item>
+           <NavigationMenu.Item>
+            <NavigationMenu.Link asChild>
+              <NavLink className="min-h-11 flex items-center bg-black text-white border border-gray-700 rounded-lg px-3" to="" onClick={() => {
+                 logout();
+                 nav("/");
+              }}>
+                Salir
+              </NavLink>
+            </NavigationMenu.Link>
+           </NavigationMenu.Item>
+          </>
+         ) : (
+          <NavigationMenu.Item>
+            <NavigationMenu.Link asChild>
+              <Link className="min-h-11 flex items-center bg-black text-white border border-gray-700 rounded-lg px-3" to="/login">
+                Ingresar
+              </Link>
+            </NavigationMenu.Link>
+          </NavigationMenu.Item>
+
+         )}
+        </NavigationMenu.List>
+      </NavigationMenu.Root>
+    </header>
+  );
+}
+
+export function App(): JSX.Element {
+  return (
+    <SessionProvider>
+      <Barra />
+      <main className="max-w-2xl mx-auto p-3 pb-10">
+        <Routes>
+          <Route path="/" element={<LigasPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/ligas" element={<LigasPage />} />
+          <Route path="/ligas/:id" element={<LigaDetailPage />} />
+          <Route path="/partidos/:id" element={<PartidoPage />} />
+          <Route path="/estadisticas" element={<EstadisticasPage />} />
+          <Route path="/admin" element={<RequireAdmin><AdminHomePage /></RequireAdmin>} />
+          <Route path="/admin/gestion" element={<RequireAdmin><GestionPage /></RequireAdmin>} />
+          <Route path="/admin/ligas/:id" element={<RequireAdmin><LigaManagePage /></RequireAdmin>} />
+          <Route path="/admin/partidos/nuevo" element={<RequireAdmin><PartidoFormPage /></RequireAdmin>} />
+          <Route path="/admin/partidos/:id" element={<RequireAdmin><PartidoManagePage /></RequireAdmin>} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </main>
+    </SessionProvider>
+  );
+}

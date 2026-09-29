@@ -1,0 +1,318 @@
+import { useState, type FormEvent, type JSX } from "react";
+import { api, mensajeError } from "../api/client";
+import type { Asignacion, BulkResult, Equipo, Jugador, Liga, PublicUser } from "../api/types";
+import { useSession } from "../auth/Session";
+import { Button, Card, Empty, ErrorMsg, Input, Loading } from "../components/ui";
+import { usePolling } from "../hooks/usePolling";
+
+type Tab = "ligas" | "equipos" | "jugadores" | "usuarios";
+
+export function GestionPage(): JSX.Element {
+  const { esSistema } = useSession();
+  const [tab, setTab] = useState<Tab>("ligas");
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-bold">GESTIÓN DE LIGAS/EQUIPOS/JUGADORES</h1>
+      </div>
+      <div className="flex gap-1 overflow-x-auto">
+        {([
+          ["ligas", "Ligas"],
+          ["equipos", "Equipos"],
+          ["jugadores", "Jugadores"],
+          ...(esSistema ? [["usuarios", "Usuarios"] as [Tab, string]] : []),
+        ] as Array<[Tab, string]>).map(([t, txt]) => (
+          <button
+            key={t}
+            type="button"
+            onClick={() => { setTab(t); }}
+            className={`flex-1 min-h-[44px] px-2 rounded-lg font-medium whitespace-nowrap ${tab === t ? "bg-emerald-700 text-white" : "bg-white border border-stone-200"}`}
+          >
+            {txt}
+          </button>
+        ))}
+      </div>
+      {tab === "ligas" ? <LigasTab /> : null}
+      {tab === "equipos" ? <NombresTab base="/equipos" titulo="Equipo" /> : null}
+      {tab === "jugadores" ? <JugadoresTab /> : null}
+      {tab === "usuarios" && esSistema ? <UsuariosTab /> : null}
+    </div>
+  );
+}
+
+function LigasTab(): JSX.Element {
+  const ligas = usePolling(() => api.get<Liga[]>("/ligas"), 30_000);
+  const [nombre, setNombre] = useState("");
+  const [formato, setFormato] = useState<"liga" | "copa">("liga");
+  const [idaVuelta, setIdaVuelta] = useState(false);
+  const [error, setError] = useState<unknown>(null);
+
+  async function crear(e: FormEvent): Promise<void> {
+    e.preventDefault();
+    setError(null);
+    try {
+      await api.post("/ligas", { nombre: nombre.trim(), formato, idaVuelta: formato === "copa" && idaVuelta });
+      setNombre("");
+      ligas.refresh();
+    } catch (err) {
+      setError(err);
+    }
+  }
+
+  async function borrar(id: string): Promise<void> {
+    setError(null);
+    try {
+      await api.del(`/ligas/${id}`);
+      ligas.refresh();
+    } catch (err) {
+      setError(err);
+    }
+  }
+
+  if (ligas.loading && !ligas.data) return <Loading />;
+  if (ligas.error && !ligas.data) return <ErrorMsg error={ligas.error} onRetry={ligas.refresh} />;
+  return (
+    <Card>
+      <form onSubmit={(e) => { void crear(e); }} className="flex flex-col gap-2 mb-3">
+        <Input aria-label="Nombre de liga" placeholder="Nombre" value={nombre} onChange={(e) => { setNombre(e.target.value); }} />
+        <div className="flex gap-2">
+          <select aria-label="Formato" className="flex-1 min-h-[44px] rounded-lg border px-2 bg-white" value={formato} onChange={(e) => { setFormato(e.target.value as "liga" | "copa"); }}>
+            <option value="liga">Liga</option>
+            <option value="copa">Copa</option>
+          </select>
+          {formato === "copa" ? (
+            <label className="flex items-center gap-2 min-h-[44px]">
+              <input type="checkbox" checked={idaVuelta} onChange={(e) => { setIdaVuelta(e.target.checked); }} className="w-5 h-5" />
+              Ida+vuelta
+            </label>
+          ) : null}
+        </div>
+        {error ? <p className="text-red-700">{mensajeError(error)}</p> : null}
+        <Button disabled={!nombre.trim()}>Crear liga</Button>
+      </form>
+      {(ligas.data ?? []).map((l) => (
+        <div key={l.id} className="flex items-center justify-between border-t border-stone-100 min-h-[44px]">
+          <span>{l.nombre} <span className="text-xs text-stone-500">({l.formato})</span></span>
+          <button type="button" onClick={() => void borrar(l.id)} className="min-h-[44px] px-2 text-red-700" aria-label={`Borrar ${l.nombre}`}>
+            Borrar
+          </button>
+        </div>
+      ))}
+    </Card>
+  );
+}
+
+function NombresTab({ base, titulo }: { base: string; titulo: string }): JSX.Element {
+  const lista = usePolling(() => api.get<Array<Equipo | Jugador>>(base), 30_000);
+  const [nombre, setNombre] = useState("");
+  const [error, setError] = useState<unknown>(null);
+
+  async function crear(e: FormEvent): Promise<void> {
+    e.preventDefault();
+    setError(null);
+    try {
+      await api.post(base, { nombre: nombre.trim() });
+      setNombre("");
+      lista.refresh();
+    } catch (err) {
+      setError(err);
+    }
+  }
+
+  async function borrar(id: string): Promise<void> {
+    setError(null);
+    try {
+      await api.del(`${base}/${id}`);
+      lista.refresh();
+    } catch (err) {
+      setError(err);
+    }
+  }
+
+  if (lista.loading && !lista.data) return <Loading />;
+  if (lista.error && !lista.data) return <ErrorMsg error={lista.error} onRetry={lista.refresh} />;
+  return (
+    <Card>
+      <form onSubmit={(e) => { void crear(e); }} className="flex gap-2 mb-3">
+        <Input aria-label={`Nombre de ${titulo}`} placeholder={titulo} value={nombre} onChange={(e) => { setNombre(e.target.value); }} />
+        <Button disabled={!nombre.trim()}>+</Button>
+      </form>
+      {error ? <p className="text-red-700">{mensajeError(error)}</p> : null}
+      {(lista.data ?? []).map((x) => (
+        <div key={x.id} className="flex items-center justify-between border-t border-stone-100 min-h-[44px]">
+          <span>{x.nombre}</span>
+          <button type="button" onClick={() => void borrar(x.id)} className="min-h-[44px] px-2 text-red-700" aria-label={`Borrar ${x.nombre}`}>
+            Borrar
+          </button>
+        </div>
+      ))}
+      {(lista.data ?? []).length === 0 ? <Empty texto="Vacío." /> : null}
+    </Card>
+  );
+}
+
+function JugadoresTab(): JSX.Element {
+  const lista = usePolling(() => api.get<Jugador[]>("/jugadores"), 30_000);
+  const [masivo, setMasivo] = useState("");
+  const [resultado, setResultado] = useState<BulkResult | null>(null);
+  const [error, setError] = useState<unknown>(null);
+
+  async function bulk(e: FormEvent): Promise<void> {
+    e.preventDefault();
+    setError(null);
+    setResultado(null);
+    const nombres = masivo.split("\n").map((s) => s.trim()).filter(Boolean);
+    if (nombres.length === 0) return;
+    try {
+      const r = await api.post<BulkResult>("/jugadores/bulk", { nombres });
+      setResultado(r);
+      setMasivo("");
+      lista.refresh();
+    } catch (err) {
+      setError(err);
+    }
+  }
+
+  async function borrar(id: string): Promise<void> {
+    setError(null);
+    try {
+      await api.del(`/jugadores/${id}`);
+      lista.refresh();
+    } catch (err) {
+      setError(err);
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      <Card>
+        <h2 className="font-bold mb-2">Alta masiva (uno por línea)</h2>
+        <form onSubmit={(e) => { void bulk(e); }} className="flex flex-col gap-2">
+          <textarea aria-label="Nombres" rows={4} className="rounded-lg border border-stone-300 p-2" value={masivo} onChange={(e) => { setMasivo(e.target.value); }} />
+          {error ? <p className="text-red-700">{mensajeError(error)}</p> : null}
+          {resultado ? (
+            <p className="text-sm">
+              Creados: {resultado.creados.length}. Errores: {resultado.errores.map((x) => `${x.nombre} (${x.motivo})`).join(", ") || "—"}
+            </p>
+          ) : null}
+          <Button>Crear varios</Button>
+        </form>
+      </Card>
+      <Card>
+        {lista.loading && !lista.data ? <Loading /> : null}
+        {lista.error && !lista.data ? <ErrorMsg error={lista.error} onRetry={lista.refresh} /> : null}
+        {(lista.data ?? []).map((j) => (
+          <div key={j.id} className="flex items-center justify-between border-t border-stone-100 min-h-[44px]">
+            <span>{j.nombre}</span>
+            <button type="button" onClick={() => void borrar(j.id)} className="min-h-[44px] px-2 text-red-700" aria-label={`Borrar ${j.nombre}`}>
+              Borrar
+            </button>
+          </div>
+        ))}
+      </Card>
+    </div>
+  );
+}
+
+function UsuariosTab(): JSX.Element {
+  const users = usePolling(() => api.get<PublicUser[]>("/usuarios"), 30_000);
+  const ligas = usePolling(() => api.get<Liga[]>("/ligas"), 30_000);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [role, setRole] = useState<"admin_partidos" | "admin_usuarios">("admin_partidos");
+  const [error, setError] = useState<unknown>(null);
+  const [ligaSel, setLigaSel] = useState("");
+  const [asignarId, setAsignarId] = useState("");
+  const asignados = usePolling(
+    () => (ligaSel ? api.get<Asignacion[]>(`/ligas/${ligaSel}/admins`) : Promise.resolve([])),
+    30_000,
+    ligaSel !== "",
+  );
+
+  async function crear(e: FormEvent): Promise<void> {
+    e.preventDefault();
+    setError(null);
+    try {
+      await api.post("/usuarios", { username: username.trim(), password, role });
+      setUsername("");
+      setPassword("");
+      users.refresh();
+    } catch (err) {
+      setError(err);
+    }
+  }
+
+  async function asignar(e: FormEvent): Promise<void> {
+    e.preventDefault();
+    if (!ligaSel || !asignarId) return;
+    setError(null);
+    try {
+      await api.post(`/ligas/${ligaSel}/admins`, { userId: asignarId });
+      asignados.refresh();
+    } catch (err) {
+      setError(err);
+    }
+  }
+
+  async function quitar(userId: string): Promise<void> {
+    if (!ligaSel) return;
+    setError(null);
+    try {
+      await api.del(`/ligas/${ligaSel}/admins/${userId}`);
+      asignados.refresh();
+    } catch (err) {
+      setError(err);
+    }
+  }
+
+  const nombreUsuario = (id: string): string => (users.data ?? []).find((u) => u.id === id)?.username ?? id;
+
+  return (
+    <div className="flex flex-col gap-3">
+      <Card>
+        <h2 className="font-bold mb-2">Nuevo usuario</h2>
+        <form onSubmit={(e) => { void crear(e); }} className="flex flex-col gap-2">
+          <Input aria-label="Usuario" placeholder="Usuario" value={username} onChange={(e) => { setUsername(e.target.value); }} />
+          <Input aria-label="Contraseña" placeholder="Contraseña (mín. 4)" type="password" value={password} onChange={(e) => { setPassword(e.target.value); }} />
+          <select aria-label="Rol" className="min-h-[44px] rounded-lg border px-2 bg-white" value={role} onChange={(e) => { setRole(e.target.value as typeof role); }}>
+            <option value="admin_partidos">Admin de partidos</option>
+            <option value="admin_usuarios">Admin de sistema</option>
+          </select>
+          {error ? <p className="text-red-700">{mensajeError(error)}</p> : null}
+          <Button disabled={!username.trim() || password.length < 4}>Crear</Button>
+        </form>
+        {(users.data ?? []).map((u) => (
+          <div key={u.id} className="border-t border-stone-100 min-h-[44px] flex items-center justify-between">
+            <span>{u.username} <span className="text-xs text-stone-500">({u.role})</span></span>
+          </div>
+        ))}
+      </Card>
+      <Card>
+        <h2 className="font-bold mb-2">Asignar a liga</h2>
+        <form onSubmit={(e) => { void asignar(e); }} className="flex flex-col gap-2">
+          <select aria-label="Liga" className="min-h-[44px] rounded-lg border px-2 bg-white" value={ligaSel} onChange={(e) => { setLigaSel(e.target.value); }}>
+            <option value="">Liga...</option>
+            {(ligas.data ?? []).map((l) => (
+              <option key={l.id} value={l.id}>{l.nombre}</option>
+            ))}
+          </select>
+          <select aria-label="Admin" className="min-h-[44px] rounded-lg border px-2 bg-white" value={asignarId} onChange={(e) => { setAsignarId(e.target.value); }}>
+            <option value="">Admin de partidos...</option>
+            {(users.data ?? []).filter((u) => u.role === "admin_partidos").map((u) => (
+              <option key={u.id} value={u.id}>{u.username}</option>
+            ))}
+          </select>
+          <Button disabled={!ligaSel || !asignarId}>Asignar</Button>
+        </form>
+        {(asignados.data ?? []).map((a) => (
+          <div key={a.id} className="flex items-center justify-between border-t border-stone-100 min-h-[44px]">
+            <span>{nombreUsuario(a.userId)}</span>
+            <button type="button" onClick={() => void quitar(a.userId)} className="min-h-[44px] px-2 text-red-700">
+              Quitar
+            </button>
+          </div>
+        ))}
+      </Card>
+    </div>
+  );
+}
