@@ -1,4 +1,4 @@
-import { Card } from "./ui";
+import { Badge, Card } from "./ui";
 
 interface PartidoRowProps {
   id: string;
@@ -20,10 +20,10 @@ export function PartidoCard(partido: PartidoRowProps) {
       <span className="min-w-0 flex-1 font-medium wrap-break-words pt-2">
         {`${partido.mapaEquipos.get(partido.localId) ?? "?"} ${String(partido.marcador.local)} - ${String(partido.marcador.visita)} ${partido.mapaEquipos.get(partido.visitaId) ?? "?"}`}
       </span>
-      <div className="text-sm text-stone-500 flex gap-2">
+      <div className="text-sm text-stone-500 flex items-center justify-between min-h-11">
         {partido.fase && <span>{partido.fase || "—"}</span>}
         <span className="p-2 h-min">{partido.fecha.slice(0, 10) || "—"}</span>
-        <span className="bg-gray-300 p-2 rounded-xl h-min">{partido.estado}</span>
+        <Badge>{partido.estado}</Badge>
       </div>
     </div>
   </Card>;
