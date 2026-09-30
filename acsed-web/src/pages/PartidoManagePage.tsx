@@ -4,14 +4,15 @@ import { api, mensajeError } from "../api/client";
 import type { Jugador, PartidoDetalle } from "../api/types";
 import { CargaVivo } from "../components/CargaVivo";
 import { ActorLine, Badge, Button, Card, Empty, ErrorMsg, Input, Loading } from "../components/ui";
-import { useNombres } from "../hooks/useNombres";
+import { useMapaEquipos, useMapaJugadores } from "../hooks/useNombres";
 import { usePolling } from "../hooks/usePolling";
 import { Collapsible, Content, Trigger } from "@radix-ui/react-collapsible";
 
 export function PartidoManagePage(): JSX.Element {
   const { id = "" } = useParams();
   const detalle = usePolling(() => api.get<PartidoDetalle>(`/partidos/${id}`), 5_000);
-  const { mapaEquipos, mapaJugadores } = useNombres();
+  const mapaEquipos = useMapaEquipos();
+  const mapaJugadores = useMapaJugadores();
   const [open, setOpen] = useState(true);
 
   if (detalle.loading && !detalle.data) return <Loading />;
@@ -110,7 +111,8 @@ export function Convocatorias({ partidoId, localId, visitaId, lista, eventos, on
   onCambio: () => void;
 }): JSX.Element {
   const jugadores = usePolling(() => api.get<Jugador[]>("/jugadores"), 60_000);
-  const { mapaEquipos, mapaJugadores } = useNombres();
+  const mapaEquipos = useMapaEquipos();
+  const mapaJugadores = useMapaJugadores();
   const [jugadorId, setJugadorId] = useState("");
   const [equipoId, setEquipoId] = useState("");
   const [error, setError] = useState<unknown>(null);

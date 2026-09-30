@@ -26,6 +26,7 @@ export function CargaVivo({ partidoId, convocatorias, eventos, nombreJugador, no
   const [sel, setSel] = useState<{ jugadorId: string; equipoId: string } | null>(null);
   const [minuto, setMinuto] = useState("");
   const [enviando, setEnviando] = useState(false);
+  const [tipoGol, setTipoGol] = useState<TipoEvento | null>(null);
   const [error, setError] = useState<unknown>(null);
   const [deshacerId, setDeshacerId] = useState<string | null>(null);
 
@@ -37,6 +38,7 @@ export function CargaVivo({ partidoId, convocatorias, eventos, nombreJugador, no
 
   async function registrar(tipo: TipoEvento): Promise<void> {
     if (!sel || enviando) return;
+    setTipoGol(tipo);
     setEnviando(true);
     setError(null);
     try {
@@ -85,7 +87,7 @@ export function CargaVivo({ partidoId, convocatorias, eventos, nombreJugador, no
                   setError(null);
                   setSel({ jugadorId: c.jugadorId, equipoId: c.equipoId });
                 }}
-                className="min-h-[52px] px-3 rounded-lg bg-white border border-stone-200 text-left font-medium active:bg-emerald-50"
+                className="min-h-13 px-3 rounded-lg bg-white border border-stone-200 text-left font-medium active:bg-emerald-50"
               >
                 {nombreJugador(c.jugadorId)}
               </button>
@@ -102,7 +104,7 @@ export function CargaVivo({ partidoId, convocatorias, eventos, nombreJugador, no
         ) : (
           <ul className="flex flex-col gap-1">
             {[...eventos].reverse().map((e) => (
-              <li key={e.id} className="flex items-center justify-between bg-white border border-stone-200 rounded-lg px-3 min-h-[44px]">
+              <li key={e.id} className="flex items-center justify-between bg-white border border-stone-200 rounded-lg px-3 min-h-11">
                 <span className="text-sm">
                   {nombreJugador(e.jugadorId)} · <Badge>{e.tipo}</Badge>
                 </span>
@@ -110,7 +112,7 @@ export function CargaVivo({ partidoId, convocatorias, eventos, nombreJugador, no
                   type="button"
                   aria-label={`Borrar gol de ${nombreJugador(e.jugadorId)}`}
                   onClick={() => void borrar(e.id)}
-                  className="min-h-[44px] px-2 text-red-700 font-bold"
+                  className="min-h-11 px-2 text-red-700 font-bold"
                 >
                   ×
                 </button>
@@ -123,8 +125,8 @@ export function CargaVivo({ partidoId, convocatorias, eventos, nombreJugador, no
       <Sheet open={sel !== null} onOpenChange={(v) => { if (!v) setSel(null); }} title={sel ? nombreJugador(sel.jugadorId) : ""}>
         <div className="flex flex-col gap-2">
           {TIPOS.map((t) => (
-            <Button key={t.tipo} disabled={enviando} onClick={() => void registrar(t.tipo)} className="min-h-[56px] text-lg">
-              {enviando ? "Enviando..." : t.txt}
+            <Button key={t.tipo} disabled={enviando} onClick={() => void registrar(t.tipo)} className="min-h-14 text-lg">
+              {enviando && t.tipo === tipoGol ? "Enviando..." : t.txt}
             </Button>
           ))}
           <Input

@@ -4,10 +4,11 @@ import { api } from "../api/client";
 import type { FilaEquipo, FilaJugador, Liga } from "../api/types";
 import { Badge, Card, Empty, ErrorMsg, Loading } from "../components/ui";
 import { SortTH } from "../components/SortTH";
-import { useNombres } from "../hooks/useNombres";
+import { useMapaEquipos } from "../hooks/useNombres";
 import { porFechaDesc } from "../hooks/orden";
 import { useOrden } from "../hooks/useOrden";
 import { usePolling } from "../hooks/usePolling";
+import { PartidoCard } from "../components/PartidoCard";
 
 interface PartidoRow {
   id: string;
@@ -19,6 +20,7 @@ interface PartidoRow {
   penalesLocal: number | null;
   penalesVisita: number | null;
   clasificadoId: string | null;
+  marcador: { local: number; visita: number };
 }
 
 type Tab = "partidos" | "tabla" | "jugadores";
@@ -27,7 +29,7 @@ export function LigaDetailPage(): JSX.Element {
   const { id = "" } = useParams();
   const [tab, setTab] = useState<Tab>("partidos");
   const liga = usePolling(() => api.get<Liga>(`/ligas/${id}`), 15_000);
-  const { mapaEquipos } = useNombres();
+  const mapaEquipos = useMapaEquipos();
 
   if (liga.loading && !liga.data) return <Loading />;
   if (liga.error && !liga.data) return <ErrorMsg error={liga.error} onRetry={liga.refresh} />;
@@ -64,7 +66,7 @@ export function LigaDetailPage(): JSX.Element {
 
 function PartidosTab({ ligaId }: { ligaId: string }): JSX.Element {
   const { data, error, loading, refresh } = usePolling(() => api.get<PartidoRow[]>(`/partidos?ligaId=${ligaId}`), 15_000);
-  const { mapaEquipos } = useNombres();
+  const mapaEquipos = useMapaEquipos();
   if (loading && !data) return <Loading />;
   if (error && !data) return <ErrorMsg error={error} onRetry={refresh} />;
   if (!data || data.length === 0) return <Empty texto="Sin partidos." />;
@@ -72,20 +74,7 @@ function PartidosTab({ ligaId }: { ligaId: string }): JSX.Element {
     <div className="flex flex-col gap-2">
       {porFechaDesc(data).map((p) => (
         <Link key={p.id} to={`/partidos/${p.id}`}>
-          <Card>
-            <div className="min-h-11 flex justify-between">
-              <span className="font-medium">
-                {mapaEquipos.get(p.localId) ?? "?"} vs {mapaEquipos.get(p.visitaId) ?? "?"}
-              </span>
-              <div className="text-sm text-stone-500 flex gap-2">
-                {
-                  p.fase && <span>{p.fase || "—"}</span>
-                }
-                <span>{p.fecha.slice(0, 10) || "—"}</span>
-                <span>{p.estado}</span>
-              </div>
-            </div>
-          </Card>
+          <PartidoCard {...p} mapaEquipos={mapaEquipos} />
         </Link>
       ))}
     </div>
@@ -171,8 +160,8 @@ function LlavesTab({ ligaId, nombres }: { ligaId: string; nombres: Map<string, s
         <Card key={fase}>
           <h2 className="font-bold mb-2">{fase}</h2>
           {ps.map((p) => (
-            <Link key={p.id} to={`/partidos/${p.id}`} className="block py-2 border-t border-stone-100 min-h-[44px]">
-              {nombres.get(p.localId) ?? "?"} vs {nombres.get(p.visitaId) ?? "?"}
+              <Link key={p.id} to={`/partidos/${p.id}`} className="block py-2 border-t border-stone-100 min-h-[44px]">
+                {`${nombres.get(p.localId) ?? "?"} ${String(p.marcador.local)} - ${String(p.marcador.visita)} ${nombres.get(p.visitaId) ?? "?"}`}
               {p.penalesLocal !== null && p.penalesVisita !== null ? (
                 <span className="text-sm text-stone-500"> (pen. {p.penalesLocal}-{p.penalesVisita})</span>
               ) : null}

@@ -1,9 +1,10 @@
 import type { JSX } from "react";
 import { useParams } from "react-router-dom";
+import * as _ from "lodash";
 import { api } from "../api/client";
 import type { PartidoDetalle } from "../api/types";
 import { ActorLine, Badge, Card, Empty, ErrorMsg, Loading } from "../components/ui";
-import { useNombres } from "../hooks/useNombres";
+import { useMapaEquipos, useMapaJugadores } from "../hooks/useNombres";
 import { usePolling } from "../hooks/usePolling";
 
 const TIPO_TXT: Record<string, string> = { gol: "Gol", autogol: "Autogol", penal: "Penal" };
@@ -11,7 +12,23 @@ const TIPO_TXT: Record<string, string> = { gol: "Gol", autogol: "Autogol", penal
 export function PartidoPage(): JSX.Element {
   const { id = "" } = useParams();
   const { data, error, loading, refresh } = usePolling(() => api.get<PartidoDetalle>(`/partidos/${id}`), 12_000);
-  const { mapaEquipos, mapaJugadores } = useNombres();
+  const mapaEquipos = useMapaEquipos();
+  const mapaJugadores = useMapaJugadores();
+  const goleadores = _.orderBy(
+    _.map(
+      _.reduce(
+        data?.eventos.filter((e) => e.tipo === "gol" || e.tipo === "penal") || [],
+        (result: Record<string, number>, value: { jugadorId: string }) => {
+          result[value.jugadorId] = (result[value.jugadorId] || 0) + 1;
+          return result;
+        },
+        {}
+      ),
+      (value, key) => ({ nombre: key, goles: value })
+    ),
+    ["goles", "nombre"],
+    ["desc", "asc"]
+  );
 
   if (loading && !data) return <Loading />;
   if (error && !data) return <ErrorMsg error={error} onRetry={refresh} />;
@@ -38,7 +55,23 @@ export function PartidoPage(): JSX.Element {
         <ActorLine createdBy={data.createdBy} createdAt={data.createdAt} />
       </Card>
       <Card>
-        <h2 className="font-bold mb-2">Goles</h2>
+        <h2 className="font-bold mb-2">Goleadores</h2>
+        {goleadores.length === 0 ? (
+          <Empty texto="Sin goles." />
+        ) : (
+          <ol className="flex flex-col gap-2 list-decimal">
+            {goleadores.map((goleador) => (
+              <li key={goleador.nombre} className="flex justify-between gap-2">
+                {' '}
+                {mapaJugadores.get(goleador.nombre)}
+                <span className="font-medium">{goleador.goles} gol(es)</span>                
+              </li>
+            ))}
+          </ol>
+        )}
+      </Card>
+      <Card>
+        <h2 className="font-bold mb-2">Cronología</h2>
         {data.eventos.length === 0 ? (
           <Empty texto="Sin goles." />
         ) : (

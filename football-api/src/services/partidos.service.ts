@@ -1,18 +1,18 @@
 import { assertTransition } from "../domain/estado";
-import { computeMarcador } from "../domain/marcador";
+import { computeMarcador, type Marcador } from "../domain/marcador";
 import { badRequest, notFound, unprocessable } from "../http/errors";
 import type { MongooseLigasRepo } from "../repositories/catalogos.repository";
 import type { MongooseConvocatoriasRepo, MongooseEventosRepo } from "../repositories/match.repository";
 import type { MongoosePartidosRepo } from "../repositories/partidos.repository";
 import type { MongooseEquiposRepo } from "../repositories/catalogos.repository";
-import type { Actor, EstadoPartido, Partido } from "../repositories/types";
+import type { Actor, EstadoPartido, Evento, Partido } from "../repositories/types";
 
 export interface Deps {
   partidos: MongoosePartidosRepo;
   ligas: Pick<MongooseLigasRepo, "findById">;
   equipos: Pick<MongooseEquiposRepo, "findById">;
   convocatorias: Pick<MongooseConvocatoriasRepo, "listByPartido">;
-  eventos: Pick<MongooseEventosRepo, "listByPartido">;
+  eventos: Pick<MongooseEventosRepo, "listByPartido" | "listByPartidos">;
 }
 
 export interface PartidoInput {
@@ -23,6 +23,8 @@ export interface PartidoInput {
   fase?: string;
   idaDe?: string | null;
 }
+
+export type PartidoListado = Partido & { marcador: Marcador };
 
 export function createPartidosService(d: Deps) {
   async function validarEquipos(localId: string, visitaId: string): Promise<void> {
@@ -54,8 +56,17 @@ export function createPartidosService(d: Deps) {
       });
     },
 
-    list(filtro?: { ligaId?: string; estado?: EstadoPartido }): Promise<Partido[]> {
-      return d.partidos.list(filtro);
+    async list(filtro?: { ligaId?: string; estado?: EstadoPartido }): Promise<PartidoListado[]> {
+      const partidos = await d.partidos.list(filtro);
+      const eventos = await d.eventos.listByPartidos(partidos.map((p) => p.id));
+      const porPartido = new Map<string, Array<{ jugadorId: string; equipoId: string; tipo: Evento["tipo"] }>>();
+      for (const e of eventos) {
+        porPartido.set(e.partidoId, [...(porPartido.get(e.partidoId) ?? []), { jugadorId: e.jugadorId, equipoId: e.equipoId, tipo: e.tipo }]);
+      }
+      return partidos.map((p) => ({
+        ...p,
+        marcador: computeMarcador(porPartido.get(p.id) ?? [], p.localId, p.visitaId),
+      }));
     },
 
     async detalle(id: string) {

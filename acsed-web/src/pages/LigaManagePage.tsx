@@ -3,9 +3,10 @@ import { Link, useParams } from "react-router-dom";
 import { api } from "../api/client";
 import type { Liga } from "../api/types";
 import { Card, Empty, ErrorMsg, Loading } from "../components/ui";
-import { useNombres } from "../hooks/useNombres";
+import { useMapaEquipos } from "../hooks/useNombres";
 import { porFechaDesc } from "../hooks/orden";
 import { usePolling } from "../hooks/usePolling";
+import { PartidoCard } from "../components/PartidoCard";
 
 interface PartidoRow {
   id: string;
@@ -14,13 +15,17 @@ interface PartidoRow {
   fecha: string;
   estado: string;
   fase: string;
+  penalesLocal: number | null;
+  penalesVisita: number | null;
+  clasificadoId: string | null;
+  marcador: { local: number; visita: number };
 }
 
 export function LigaManagePage(): JSX.Element {
   const { id = "" } = useParams();
   const liga = usePolling(() => api.get<Liga>(`/ligas/${id}`), 15_000);
   const partidos = usePolling(() => api.get<PartidoRow[]>(`/partidos?ligaId=${id}`), 5_000);
-  const { mapaEquipos } = useNombres();
+  const mapaEquipos = useMapaEquipos();
 
   if (liga.loading && !liga.data) return <Loading />;
   if (liga.error && !liga.data) return <ErrorMsg error={liga.error} onRetry={liga.refresh} />;
@@ -37,20 +42,7 @@ export function LigaManagePage(): JSX.Element {
       {partidos.data ? (
         porFechaDesc(partidos.data).map((p) => (
           <Link key={p.id} to={`/admin/partidos/${p.id}`}>
-            <Card>
-              <div className="min-h-11 flex justify-between">
-                <span className="font-medium">
-                  {mapaEquipos.get(p.localId) ?? "?"} vs {mapaEquipos.get(p.visitaId) ?? "?"}
-                </span>
-                <div className="text-sm text-stone-500 flex gap-2">
-                  {
-                    p.fase && <span>{p.fase || "—"}</span>
-                  }
-                  <span>{p.fecha.slice(0, 10) || "—"}</span>
-                  <span>{p.estado}</span>
-                </div>
-              </div>
-            </Card>
+            <PartidoCard {...p} mapaEquipos={mapaEquipos} />
           </Link>
         ))
       ) : null}

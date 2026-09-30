@@ -15,7 +15,18 @@ const evConGol: PartidoDetalle["eventos"] = [
 ];
 
 function mockFetch() {
-  return vi.fn(async (): Promise<Response> => new Response(JSON.stringify([]), { status: 200 }));
+  return vi.fn(async (url: unknown): Promise<Response> => {
+    const u = String(url);
+    const body = u.endsWith("/equipos")
+      ? [{ id: "e1", nombre: "Equipo Uno" }]
+      : u.endsWith("/jugadores")
+        ? [
+          { id: "j1", nombre: "Jugador Uno" },
+          { id: "j2", nombre: "Jugador Dos" },
+        ]
+        : [];
+    return new Response(JSON.stringify(body), { status: 200 });
+  });
 }
 
 function renderConv(eventos: PartidoDetalle["eventos"], onCambio: () => void) {
@@ -38,7 +49,7 @@ describe("quitar convocado", () => {
     const onCambio = vi.fn();
     renderConv([], onCambio);
 
-    const quitar = screen.getAllByText("Quitar");
+    const quitar = await screen.findAllByText("Quitar");
     await user.click(quitar[0] as HTMLElement);
     await user.click(screen.getByText("Confirmar"));
 
@@ -58,7 +69,7 @@ describe("quitar convocado", () => {
     vi.stubGlobal("fetch", fetchMock);
     renderConv(evConGol, vi.fn());
 
-    const quitar = screen.getAllByText("Quitar");
+    const quitar = await screen.findAllByText("Quitar");
     await user.click(quitar[0] as HTMLElement);
     await user.click(screen.getByText("Confirmar"));
 

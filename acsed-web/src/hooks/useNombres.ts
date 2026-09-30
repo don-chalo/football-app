@@ -3,11 +3,18 @@ import { api } from "../api/client";
 import type { Equipo, Jugador } from "../api/types";
 import { usePolling } from "../hooks/usePolling";
 
-/** Mapas id→nombre de catálogos (listas chicas barriales). */
-export function useNombres() {
-  const equipos = usePolling(() => api.get<Equipo[]>("/equipos"), 60_000);
-  const jugadores = usePolling(() => api.get<Jugador[]>("/jugadores"), 60_000);
-  const mapaEquipos = useMemo(() => new Map((equipos.data ?? []).map((e) => [e.id, e.nombre])), [equipos.data]);
-  const mapaJugadores = useMemo(() => new Map((jugadores.data ?? []).map((j) => [j.id, j.nombre])), [jugadores.data]);
-  return { mapaEquipos, mapaJugadores };
+/** Base privada: id→nombre de un catálogo (listas chicas barriales). */
+function useCatalogo<T extends { id: string; nombre: string }>(fetcher: () => Promise<T[]>): Map<string, string> {
+  const estado = usePolling(fetcher, 60_000);
+  return useMemo(() => new Map((estado.data ?? []).map((item) => [item.id, item.nombre])), [estado.data]);
+}
+
+/** Mapa id→nombre de equipos. Solo pide GET /equipos. */
+export function useMapaEquipos(): Map<string, string> {
+  return useCatalogo<Equipo>(() => api.get<Equipo[]>("/equipos"));
+}
+
+/** Mapa id→nombre de jugadores. Solo pide GET /jugadores. */
+export function useMapaJugadores(): Map<string, string> {
+  return useCatalogo<Jugador>(() => api.get<Jugador[]>("/jugadores"));
 }

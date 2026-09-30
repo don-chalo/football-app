@@ -94,6 +94,14 @@ describe("matriz de permisos + flujo barrial", () => {
     const det = (await request(app).get(`/partidos/${partido.id}`).expect(200)).body as { marcador: { local: number; visita: number } };
     expect(det.marcador).toEqual({ local: 1, visita: 1 });
 
+    const lista = (await request(app).get(`/partidos?ligaId=${liga.id}`).expect(200)).body as Array<{
+      id: string;
+      estado: string;
+      marcador: { local: number; visita: number };
+    }>;
+    expect(lista).toHaveLength(1);
+    expect(lista[0]).toMatchObject({ id: partido.id, estado: "finalizado", marcador: { local: 1, visita: 1 } });
+
     const tabla = (await request(app).get("/estadisticas/equipos").expect(200)).body as Array<{ pts: number; pe: number }>;
     expect(tabla).toHaveLength(2);
     expect(tabla[0]).toMatchObject({ pts: 1, pe: 1 });
