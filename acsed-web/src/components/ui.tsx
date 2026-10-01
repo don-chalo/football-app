@@ -28,7 +28,7 @@ export function Card({ children, className = "" }: { children: ReactNode; classN
 export function Title({ children  }: { children: ReactNode }): JSX.Element {
   return (
     <div className="flex items-center gap-x-2">
-      <CaretLeftIcon className="w-10 h-10 text-neutral-500 cursor-pointer" onClick={() => window.history.back()} />
+      <CaretLeftIcon className="w-10 h-10 text-neutral-500 cursor-pointer" onClick={() => { window.history.back(); }} />
       <div className="flex items-center justify-between gap-x-2">
         {children}
       </div>

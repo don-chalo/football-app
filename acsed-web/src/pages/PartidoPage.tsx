@@ -33,6 +33,8 @@ export function PartidoPage(): JSX.Element {
   if (loading && !data) return <Loading />;
   if (error && !data) return <ErrorMsg error={error} onRetry={refresh} />;
   if (!data) return <Empty texto="Partido no encontrado." />;
+  const locales = data.convocatorias.filter((c) => c.equipoId === data.localId);
+  const visitas = data.convocatorias.filter((c) => c.equipoId === data.visitaId);
 
   return (
     <div className="flex flex-col gap-2">
@@ -61,6 +63,35 @@ export function PartidoPage(): JSX.Element {
         </p>
       </div>
         {/* <ActorLine createdBy={data.createdBy} createdAt={data.createdAt} /> */}
+      <Card className="text-neutral-800">
+        <h2 className="font-bold mb-2">Convocatoria</h2>
+        {data.convocatorias.length === 0 ? (
+          <Empty texto="Sin convocatoria cargada." />
+        ) : (
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { equipoId: data.localId, jugadores: locales },
+              { equipoId: data.visitaId, jugadores: visitas },
+            ].map((columna) => (
+              <div key={columna.equipoId} className="min-w-0">
+                <h3 className="font-bold mb-1 wrap-break-words">{mapaEquipos.get(columna.equipoId) ?? "?"}</h3>
+                {columna.jugadores.length === 0 ? (
+                  <p className="text-sm text-stone-500">Sin jugadores.</p>
+                ) : (
+                  <ul className="flex flex-col gap-1 text-sm">
+                    {columna.jugadores.map((c) => (
+                      <li key={c.id} className={c.estado === "ausente" ? "text-stone-400" : ""}>
+                        <span className="break-words">{mapaJugadores.get(c.jugadorId) ?? "?"}</span>
+                        {c.estado === "ausente" ? <span> (ausente)</span> : null}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
       <Card className="text-neutral-800">
         <h2 className="font-bold mb-2">Goleadores</h2>
         {goleadores.length === 0 ? (

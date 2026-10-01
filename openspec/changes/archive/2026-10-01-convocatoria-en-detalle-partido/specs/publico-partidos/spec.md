@@ -1,10 +1,4 @@
-# publico-partidos Specification
-
-## Purpose
-
-Ficha publica de partidos con marcador calculado y auto-refresco para seguir resultados en vivo.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Lista y ficha de partido
 The system SHALL list partidos (filterable by liga and estado) and show a public match view with equipos, fecha, fase, estado, calculated marcador, convocatoria por equipo, shootout if present, and goal list. Each row in the public partido list SHALL display the calculated local and visiting goal totals alongside the equipos. The public partido detail SHALL display a `Convocatoria` section above `Goleadores`, with local and visiting equipos in two columns; ausente players SHALL remain visible, subdued and marked as ausente.
@@ -28,10 +22,3 @@ The system SHALL list partidos (filterable by liga and estado) and show a public
 #### Scenario: Empty convocatoria states
 - **WHEN** a visitor opens `/partidos/:id` without convocatorias, or with one equipo lacking convocatorias
 - **THEN** the empty card or equipo column indicates that no convocatoria or players are available, as applicable.
-
-### Requirement: Auto-refresh polling
-Public match views SHALL re-fetch every 10–15s (fixed), pause when the tab is hidden, and refresh immediately after the viewer's own admin mutation.
-
-#### Scenario: Goal appears without reload
-- **WHEN** a goal is registered while a visitor watches the match view
-- **THEN** the new marcador appears within the next poll tick without manual reload.

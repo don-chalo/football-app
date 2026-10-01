@@ -1,14 +1,12 @@
 import { useState, type FormEvent, type JSX } from "react";
 import { useParams } from "react-router-dom";
 import { Collapsible, Content, Trigger } from "@radix-ui/react-collapsible";
-import * as Select from "@radix-ui/react-select";
 import { api, mensajeError } from "../api/client";
 import type { Jugador, PartidoDetalle } from "../api/types";
 import { CargaVivo } from "../components/CargaVivo";
-import { ActorLine, Badge, Button, Card, Empty, ErrorMsg, Input, Loading, Title } from "../components/ui";
+import { Badge, Button, Card, Empty, ErrorMsg, Input, Loading, Title } from "../components/ui";
 import { useMapaEquipos, useMapaJugadores } from "../hooks/useNombres";
 import { usePolling } from "../hooks/usePolling";
-import { DoubleArrowDownIcon, DoubleArrowUpIcon } from "@radix-ui/react-icons";
 
 export function PartidoManagePage(): JSX.Element {
   const { id = "" } = useParams();
@@ -192,7 +190,7 @@ export function Convocatorias({ partidoId, localId, visitaId, lista, eventos, on
       {error ? <p className="text-red-700">{mensajeError(error)}</p> : null}
       {aviso ? <p className="text-red-700">{aviso}</p> : null}
       {
-        Array.from(mapaEquipos.entries()).filter(([id, nombre]) => id === localId || id === visitaId).map(([id, nombre]) => {
+        Array.from(mapaEquipos.entries()).filter(([id, _nombre]) => id === localId || id === visitaId).map(([id, nombre]) => {
           return <div key={id} className="flex flex-col gap-1">
             <p className="font-bold" key={id}>{nombre}</p>
             {lista.filter((c) => c.equipoId === id).map((c) => (

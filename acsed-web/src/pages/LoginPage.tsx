@@ -1,8 +1,10 @@
 import { useState, type FormEvent, type JSX } from "react";
 import { useNavigate } from "react-router-dom";
+import * as PasswordToggleField from "@radix-ui/react-password-toggle-field";
 import { mensajeError } from "../api/client";
 import { useSession } from "../auth/Session";
 import { Button, Card, Input } from "../components/ui";
+import { EyeClosedIcon, EyeOpenIcon } from "@radix-ui/react-icons";
 
 export function LoginPage(): JSX.Element {
   const { login } = useSession();
@@ -32,7 +34,23 @@ export function LoginPage(): JSX.Element {
         <h1 className="text-xl font-bold mb-4">Ingresar</h1>
         <form onSubmit={(e) => { void onSubmit(e); }} className="flex flex-col gap-3">
           <Input aria-label="Usuario" placeholder="Usuario" value={username} onChange={(e) => { setUsername(e.target.value); }} autoComplete="username" />
-          <Input aria-label="Contraseña" placeholder="Contraseña" type="password" value={password} onChange={(e) => { setPassword(e.target.value); }} autoComplete="current-password" />
+          <PasswordToggleField.PasswordToggleField>
+            <div className="Root grid grid-cols-6">
+              <PasswordToggleField.Input
+                aria-label="Contraseña"
+                className="Input col-span-5 px-3 min-h-11 rounded-lg border border-stone-300 bg-white"
+                placeholder="Contraseña"
+                value={password}
+                onChange={(e) => { setPassword(e.target.value); }}
+              />
+              <PasswordToggleField.Toggle className="Toggle col-span-1 flex items-center justify-center cursor-pointer">
+                <PasswordToggleField.Icon
+                  visible={<EyeOpenIcon />}
+                  hidden={<EyeClosedIcon />}
+                />
+              </PasswordToggleField.Toggle>
+            </div>
+          </PasswordToggleField.PasswordToggleField>
           {error ? <p className="text-red-700">{mensajeError(error)}</p> : null}
           <Button disabled={enviando || !username || !password}>{enviando ? "Ingresando..." : "Ingresar"}</Button>
         </form>

@@ -31,7 +31,7 @@ export function PartidoCard(partido: PartidoRowProps) {
       </div>
       <div className="text-sm text-neutral-600 flex items-center justify-end min-h-11">
         {partido.fase && <span>{partido.fase || "—"}</span>}
-        <span className="p-2 h-min">{partido.fecha.slice(0, 10) || "—"}</span>
+        <span className="p-2 h-min md:text-sm text-xs">{partido.fecha.slice(0, 10) || "—"}</span>
         <Badge>{partido.estado}</Badge>
       </div>
     </div>

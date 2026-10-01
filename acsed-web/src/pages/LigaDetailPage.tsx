@@ -45,7 +45,7 @@ export function LigaDetailPage(): JSX.Element {
         <h1 className="text-xl font-bold mr-2">{l.nombre.toUpperCase()}</h1>
         <Badge>{esCopa ? "Copa" : "Liga"}</Badge>
       </Title>
-      <Tabs.Tabs defaultValue="partidos" onValueChange={(v) => setTab(v as Tab)}>
+      <Tabs.Tabs defaultValue="partidos" onValueChange={(v) => { setTab(v as Tab); }}>
         <Tabs.List className="w-full flex justify-around mb-2">
           <Tab value="partidos" label="Partidos" selected={tab === "partidos"} />
           <Tab value="tabla" label={esCopa ? "Llaves" : "Tabla"} selected={tab === "tabla"} />
