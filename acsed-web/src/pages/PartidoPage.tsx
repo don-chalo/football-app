@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import * as _ from "lodash";
 import { api } from "../api/client";
 import type { PartidoDetalle } from "../api/types";
-import { ActorLine, Badge, Card, Empty, ErrorMsg, Loading } from "../components/ui";
+import { ActorLine, Badge, Card, Empty, ErrorMsg, Loading, Title } from "../components/ui";
 import { useMapaEquipos, useMapaJugadores } from "../hooks/useNombres";
 import { usePolling } from "../hooks/usePolling";
 
@@ -35,26 +35,33 @@ export function PartidoPage(): JSX.Element {
   if (!data) return <Empty texto="Partido no encontrado." />;
 
   return (
-    <div className="flex flex-col gap-3">
-      <Card>
-        <div className="flex items-center justify-between">
-          <h1 className="text-lg font-bold">
-            {mapaEquipos.get(data.localId) ?? "?"} {data.marcador.local} - {data.marcador.visita}{" "}
-            {mapaEquipos.get(data.visitaId) ?? "?"}
-          </h1>
-          <Badge>{data.estado}</Badge>
-        </div>
-        <p className="text-sm text-stone-500">
-          {(data.fase && " · ") || ""}{"Fecha de juego: " + new Date(data.fecha).toLocaleString("es")}
-        </p>
+    <div className="flex flex-col gap-2">
+      <Title>
+        <h1 className="text-lg font-bold text-neutral-800">
+          {(mapaEquipos.get(data.localId) ?? "?").toUpperCase()} {data.marcador.local} - {data.marcador.visita}{" "} {(mapaEquipos.get(data.visitaId) ?? "?").toUpperCase()}
+        </h1>
+        <Badge>{data.estado}</Badge>
+      </Title>
+      <div>
         {data.penalesLocal !== null && data.penalesVisita !== null ? (
-          <p className="text-sm">
+          <p className="text-sm text-neutral-800">
             Penales: {data.penalesLocal}-{data.penalesVisita}
           </p>
         ) : null}
-        <ActorLine createdBy={data.createdBy} createdAt={data.createdAt} />
-      </Card>
-      <Card>
+      </div>
+      <div className="flex items-center justify-between gap-2 mb-2">
+        <p className="text-sm text-neutral-800">
+          <span>
+            {(data.fase && " · ") || ""}
+          </span>
+          <span className="font-bold">Fecha de juego:&nbsp;</span>
+          <span>
+            {new Date(data.fecha).toLocaleString("es")}
+          </span>
+        </p>
+      </div>
+        {/* <ActorLine createdBy={data.createdBy} createdAt={data.createdAt} /> */}
+      <Card className="text-neutral-800">
         <h2 className="font-bold mb-2">Goleadores</h2>
         {goleadores.length === 0 ? (
           <Empty texto="Sin goles." />
@@ -70,14 +77,14 @@ export function PartidoPage(): JSX.Element {
           </ol>
         )}
       </Card>
-      <Card>
+      <Card className="text-neutral-800">
         <h2 className="font-bold mb-2">Cronología</h2>
         {data.eventos.length === 0 ? (
           <Empty texto="Sin goles." />
         ) : (
           <ul className="flex flex-col gap-2">
             {data.eventos.map((e) => (
-              <li key={e.id} className="border-t border-stone-100 pt-2">
+              <li key={e.id} className="border-t border-neutral-200 pt-2">
                 <span className="font-medium">{mapaJugadores.get(e.jugadorId) ?? "?"}</span>{" "}
                 <Badge>
                   {TIPO_TXT[e.tipo] ?? e.tipo}

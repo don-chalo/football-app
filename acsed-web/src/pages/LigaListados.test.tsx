@@ -72,7 +72,7 @@ describe("resultado en listados", () => {
     );
 
     expect(await screen.findByText("Alfa 2 - 1 Beta")).toBeInTheDocument();
-    expect(screen.getByText("Alfa 2 - 1 Beta").closest("div")?.className).toContain("flex-wrap");
+    expect(screen.getByText("Alfa 2 - 1 Beta").closest("div")?.className).toContain("flex align-middle");
     sinDetalle(fetchMock);
     vi.unstubAllGlobals();
   });
@@ -112,7 +112,7 @@ describe("resultado en listados", () => {
     );
 
     expect(await screen.findByText("Alfa 2 - 1 Beta")).toBeInTheDocument();
-    expect(screen.getByText("Alfa 2 - 1 Beta").closest("div")?.className).toContain("flex-wrap");
+    expect(screen.getByText("Alfa 2 - 1 Beta").closest("div")?.className).toContain("flex align-middle");
     sinDetalle(fetchMock);
     vi.unstubAllGlobals();
   });

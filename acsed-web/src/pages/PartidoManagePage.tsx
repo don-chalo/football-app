@@ -1,12 +1,14 @@
 import { useState, type FormEvent, type JSX } from "react";
 import { useParams } from "react-router-dom";
+import { Collapsible, Content, Trigger } from "@radix-ui/react-collapsible";
+import * as Select from "@radix-ui/react-select";
 import { api, mensajeError } from "../api/client";
 import type { Jugador, PartidoDetalle } from "../api/types";
 import { CargaVivo } from "../components/CargaVivo";
-import { ActorLine, Badge, Button, Card, Empty, ErrorMsg, Input, Loading } from "../components/ui";
+import { ActorLine, Badge, Button, Card, Empty, ErrorMsg, Input, Loading, Title } from "../components/ui";
 import { useMapaEquipos, useMapaJugadores } from "../hooks/useNombres";
 import { usePolling } from "../hooks/usePolling";
-import { Collapsible, Content, Trigger } from "@radix-ui/react-collapsible";
+import { DoubleArrowDownIcon, DoubleArrowUpIcon } from "@radix-ui/react-icons";
 
 export function PartidoManagePage(): JSX.Element {
   const { id = "" } = useParams();
@@ -21,17 +23,33 @@ export function PartidoManagePage(): JSX.Element {
   const p = detalle.data;
 
   return (
-    <div className="flex flex-col gap-3">
-      <Card>
-        <div className="flex items-center justify-between">
-          <h1 className="text-lg font-bold">
-            {mapaEquipos.get(p.localId) ?? "?"} {p.marcador.local} - {p.marcador.visita} {mapaEquipos.get(p.visitaId) ?? "?"}
-          </h1>
-          <Badge>{p.estado}</Badge>
-        </div>
-        <ActorLine createdBy={p.createdBy} createdAt={p.createdAt} />
-        <EstadoBotones id={p.id} estado={p.estado} onCambio={detalle.refresh} />
-      </Card>
+    <div className="flex flex-col gap-2">
+      <Title>
+        <h1 className="text-lg font-bold">
+          {(mapaEquipos.get(p.localId) ?? "?").toUpperCase()} {p.marcador.local} - {p.marcador.visita} {(mapaEquipos.get(p.visitaId) ?? "?").toUpperCase()}
+        </h1>
+        <Badge>{p.estado}</Badge>
+      </Title>
+      <div>
+        {p.penalesLocal !== null && p.penalesVisita !== null ? (
+          <p className="text-sm">
+            Penales: {p.penalesLocal}-{p.penalesVisita}
+          </p>
+        ) : null}
+      </div>
+      <div className="flex items-center justify-between gap-2 mb-2">
+        <p className="text-sm text-neutral-800">
+          <span>
+            {(p.fase && " · ") || ""}
+          </span>
+          <span className="font-bold">Fecha de juego:&nbsp;</span>
+          <span>
+            {new Date(p.fecha).toLocaleString("es")}
+          </span>
+        </p>
+      </div>
+        {/* <ActorLine createdBy={p.createdBy} createdAt={p.createdAt} /> */}
+      <EstadoBotones id={p.id} estado={p.estado} onCambio={detalle.refresh} />
 
       <Card>
         <Collapsible open={open} onOpenChange={setOpen}>
@@ -94,11 +112,17 @@ function EstadoBotones({ id, estado, onCambio }: { id: string; estado: string; o
     }
   }
   return (
-    <div className="flex gap-2 mt-2">
-      {estado === "programado" ? <Button onClick={() => void cambiar("en_juego")}>Poner en juego</Button> : null}
-      {estado === "en_juego" ? <Button onClick={() => void cambiar("finalizado")}>Finalizar</Button> : null}
-      {error ? <p className="text-red-700">{mensajeError(error)}</p> : null}
-    </div>
+    <>
+      {
+        (estado === "programado" || estado === "en_juego") && <Card>
+          <div className="flex gap-2">
+            {estado === "programado" ? <Button className="w-full" onClick={() => void cambiar("en_juego")}>Poner en juego</Button> : null}
+            {estado === "en_juego" ? <Button className="w-full" onClick={() => void cambiar("finalizado")}>Finalizar</Button> : null}
+            {error ? <p className="text-red-700">{mensajeError(error)}</p> : null}
+          </div>
+        </Card>
+      }
+    </>
   );
 }
 
@@ -126,6 +150,7 @@ export function Convocatorias({ partidoId, localId, visitaId, lista, eventos, on
     try {
       await api.post(`/partidos/${partidoId}/convocatorias`, { jugadorId, equipoId });
       setJugadorId("");
+      setEquipoId("");
       onCambio();
     } catch (err) {
       setError(err);
@@ -167,11 +192,11 @@ export function Convocatorias({ partidoId, localId, visitaId, lista, eventos, on
       {error ? <p className="text-red-700">{mensajeError(error)}</p> : null}
       {aviso ? <p className="text-red-700">{aviso}</p> : null}
       {
-        Array.from(mapaEquipos.entries()).map(([id, nombre]) => {
+        Array.from(mapaEquipos.entries()).filter(([id, nombre]) => id === localId || id === visitaId).map(([id, nombre]) => {
           return <div key={id} className="flex flex-col gap-1">
             <p className="font-bold" key={id}>{nombre}</p>
             {lista.filter((c) => c.equipoId === id).map((c) => (
-              <div key={c.id} className="flex items-center justify-between bg-stone-50 rounded-lg px-3 min-h-11">
+              <div key={c.id} className="flex items-center justify-between bg-neutral-50 border border-neutral-200 rounded-lg px-3 min-h-11">
                 <span className="text-sm">
                   {mapaJugadores.get(c.jugadorId) ?? "?"}
                   {c.estado === "ausente" ? " (ausente)" : ""}
@@ -218,17 +243,19 @@ export function Convocatorias({ partidoId, localId, visitaId, lista, eventos, on
       }
 
       <form onSubmit={(e) => { void agregar(e); }} className="flex gap-2">
-        <select aria-label="Jugador" className="flex-1 min-h-11 rounded-lg border px-2 bg-white" value={jugadorId} onChange={(e) => { setJugadorId(e.target.value); }}>
+        <select aria-label="Jugador" className="flex-1 min-h-11 rounded-lg border px-2 bg-neutral-100" value={jugadorId} onChange={(e) => { setJugadorId(e.target.value); }}>
           <option value="">Jugador...</option>
-          {(jugadores.data ?? []).map((j) => (
-            <option key={j.id} value={j.id}>{j.nombre}</option>
-          ))}
+          {
+            (jugadores.data ?? [])
+              .filter((j) => !lista.some((c) => c.jugadorId === j.id))
+              .map((j) => (<option key={j.id} value={j.id}>{j.nombre}</option>))
+          }
         </select>
-        <select aria-label="Equipo" className="min-h-11 rounded-lg border px-2 bg-white" value={equipoId} onChange={(e) => { setEquipoId(e.target.value); }}>
+        <select aria-label="Equipo" className="min-h-11 rounded-lg border px-2 bg-neutral-100" value={equipoId} onChange={(e) => { setEquipoId(e.target.value); }}>
           <option value="">Equipo...</option>
           <option value={localId}>{mapaEquipos.get(localId) ?? "Local"}</option>
           <option value={visitaId}>{mapaEquipos.get(visitaId) ?? "Visita"}</option>
-        </select>
+        </select>        
         <Button disabled={!jugadorId || !equipoId}>+</Button>
       </form>
     </div>
@@ -271,7 +298,7 @@ function PenalesForm({ partidoId, localId, visitaId, nombreEquipo, onCambio }: {
         <Input aria-label="Penales local" placeholder="Pen. local" inputMode="numeric" value={gl} onChange={(e) => { setGl(e.target.value); }} />
         <Input aria-label="Penales visita" placeholder="Pen. visita" inputMode="numeric" value={gv} onChange={(e) => { setGv(e.target.value); }} />
       </div>
-      <select aria-label="Clasificado" className="min-h-11 rounded-lg border px-3 bg-white" value={clas} onChange={(e) => { setClas(e.target.value); }}>
+      <select aria-label="Clasificado" className="min-h-11 rounded-lg border px-3 bg-nutral-100" value={clas} onChange={(e) => { setClas(e.target.value); }}>
         <option value="">Clasificado...</option>
         <option value={localId}>{nombreEquipo(localId)}</option>
         <option value={visitaId}>{nombreEquipo(visitaId)}</option>

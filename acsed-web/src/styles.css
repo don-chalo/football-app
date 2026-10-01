@@ -5,5 +5,5 @@
 }
 
 body {
-  @apply bg-stone-100 text-stone-900 antialiased;
+  @apply bg-neutral-300 text-neutral-800 antialiased;
 }

@@ -2,7 +2,7 @@ import type { JSX } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api } from "../api/client";
 import type { Liga } from "../api/types";
-import { Card, Empty, ErrorMsg, Loading } from "../components/ui";
+import { Badge, Card, Empty, ErrorMsg, Loading, Title } from "../components/ui";
 import { useMapaEquipos } from "../hooks/useNombres";
 import { porFechaDesc } from "../hooks/orden";
 import { usePolling } from "../hooks/usePolling";
@@ -26,14 +26,18 @@ export function LigaManagePage(): JSX.Element {
   const liga = usePolling(() => api.get<Liga>(`/ligas/${id}`), 15_000);
   const partidos = usePolling(() => api.get<PartidoRow[]>(`/partidos?ligaId=${id}`), 5_000);
   const mapaEquipos = useMapaEquipos();
+  const esCopa = liga.data?.formato === "copa";
 
   if (liga.loading && !liga.data) return <Loading />;
   if (liga.error && !liga.data) return <ErrorMsg error={liga.error} onRetry={liga.refresh} />;
   if (!liga.data) return <Empty texto="Liga no encontrada." />;
 
   return (
-    <div className="flex flex-col gap-3">
-      <h1 className="text-xl font-bold">{liga.data.nombre.toUpperCase()}</h1>
+    <div className="flex flex-col gap-2">
+      <Title>
+        <h1 className="text-xl font-bold">{liga.data.nombre.toUpperCase()}</h1>
+        <Badge>{esCopa ? "Copa" : "Liga"}</Badge>
+      </Title>
       <Link to={`/admin/partidos/nuevo?ligaId=${id}`}>
         <Card>
           <span className="font-bold text-emerald-800 min-h-11 flex items-center">+ Nuevo partido</span>

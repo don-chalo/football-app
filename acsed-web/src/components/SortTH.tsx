@@ -25,7 +25,7 @@ export function SortTH({
           onOrdenar(col);
         }}
         aria-sort={activo ? (orden.dir === "asc" ? "ascending" : "descending") : "none"}
-        className="min-h-[44px] px-2 font-medium text-stone-500"
+        className="min-h-11 px-2 font-medium"
       >
         {label}
         {marca}

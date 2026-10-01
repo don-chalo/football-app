@@ -121,7 +121,7 @@ export function CargaVivo({ partidoId, convocatorias, eventos, nombreJugador, no
                     setError(null);
                     setHoja({ modo: "agregar", jugadorId: c.jugadorId, equipoId: c.equipoId });
                   }}
-                  className="min-h-13 flex flex-1 items-center justify-between gap-2 rounded-lg bg-white border border-stone-200 px-3 text-left font-medium active:bg-emerald-50"
+                  className="min-h-13 flex flex-1 items-center justify-between gap-2 rounded-lg bg-neutral-50 border border-neutral-200 px-3 text-left font-medium active:bg-emerald-50"
                 >
                   <span className="min-w-0 break-words">{nombreJugador(c.jugadorId)}</span>
                   {textoConteos(c.jugadorId) ? (

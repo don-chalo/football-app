@@ -2,13 +2,15 @@ import { useState, type JSX } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api } from "../api/client";
 import type { FilaEquipo, FilaJugador, Liga } from "../api/types";
-import { Badge, Card, Empty, ErrorMsg, Loading } from "../components/ui";
+import { Badge, Card, Empty, ErrorMsg, Loading, Title } from "../components/ui";
 import { SortTH } from "../components/SortTH";
 import { useMapaEquipos } from "../hooks/useNombres";
 import { porFechaDesc } from "../hooks/orden";
 import { useOrden } from "../hooks/useOrden";
 import { usePolling } from "../hooks/usePolling";
 import { PartidoCard } from "../components/PartidoCard";
+import * as Tabs from "@radix-ui/react-tabs";
+import { Tab } from "../components/Tab";
 
 interface PartidoRow {
   id: string;
@@ -38,28 +40,27 @@ export function LigaDetailPage(): JSX.Element {
   const esCopa = l.formato === "copa";
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold">{l.nombre.toUpperCase()}</h1>
+    <div className="flex flex-col gap-2">
+      <Title>
+        <h1 className="text-xl font-bold mr-2">{l.nombre.toUpperCase()}</h1>
         <Badge>{esCopa ? "Copa" : "Liga"}</Badge>
-      </div>
-      <div className="flex gap-1" role="tablist">
-        {(["partidos", "tabla", "jugadores"] as Tab[]).map((t) => (
-          <button
-            key={t}
-            role="tab"
-            aria-selected={tab === t}
-            type="button"
-            onClick={() => { setTab(t); }}
-            className={`flex-1 min-h-11 rounded-lg font-medium ${tab === t ? "bg-emerald-700 text-white" : "bg-white border border-stone-200"}`}
-          >
-            {t === "partidos" ? "Partidos" : t === "tabla" ? (esCopa ? "Llaves" : "Tabla") : "Jugadores"}
-          </button>
-        ))}
-      </div>
-      {tab === "partidos" ? <PartidosTab ligaId={id} /> : null}
-      {tab === "tabla" ? (esCopa ? <LlavesTab ligaId={id} nombres={mapaEquipos} /> : <TablaTab ligaId={id} nombres={mapaEquipos} />) : null}
-      {tab === "jugadores" ? <JugadoresTab ligaId={id} /> : null}
+      </Title>
+      <Tabs.Tabs defaultValue="partidos" onValueChange={(v) => setTab(v as Tab)}>
+        <Tabs.List className="w-full flex justify-around mb-2">
+          <Tab value="partidos" label="Partidos" selected={tab === "partidos"} />
+          <Tab value="tabla" label={esCopa ? "Llaves" : "Tabla"} selected={tab === "tabla"} />
+          <Tab value="jugadores" label="Jugadores" selected={tab === "jugadores"} />
+        </Tabs.List>
+        <Tabs.Content value="partidos">
+          <PartidosTab ligaId={id} />
+        </Tabs.Content>
+        <Tabs.Content value="tabla">
+         {esCopa ? <LlavesTab ligaId={id} nombres={mapaEquipos} /> : <TablaTab ligaId={id} nombres={mapaEquipos} />}
+        </Tabs.Content>
+        <Tabs.Content value="jugadores">
+          <JugadoresTab ligaId={id} />
+        </Tabs.Content>
+      </Tabs.Tabs>
     </div>
   );
 }
@@ -112,9 +113,9 @@ function TablaTab({ ligaId, nombres }: { ligaId: string; nombres: Map<string, st
   if (!data || data.length === 0) return <Empty texto="Sin datos." />;
   return (
     <Card className="overflow-x-auto p-2">
-      <table className="w-full text-sm">
+      <table className="w-full text-sm text-neutral-800">
         <thead>
-          <tr className="text-stone-500">
+          <tr>
             <SortTH col="nombre" label="Equipo" orden={orden.orden} onOrdenar={orden.alternar} align="left" />
             <SortTH col="pj" label="PJ" orden={orden.orden} onOrdenar={orden.alternar} />
             <SortTH col="pg" label="G" orden={orden.orden} onOrdenar={orden.alternar} />
@@ -160,7 +161,7 @@ function LlavesTab({ ligaId, nombres }: { ligaId: string; nombres: Map<string, s
         <Card key={fase}>
           <h2 className="font-bold mb-2">{fase}</h2>
           {ps.map((p) => (
-              <Link key={p.id} to={`/partidos/${p.id}`} className="block py-2 border-t border-stone-100 min-h-[44px]">
+              <Link key={p.id} to={`/partidos/${p.id}`} className="block py-2 border-t border-stone-100 min-h-11">
                 {`${nombres.get(p.localId) ?? "?"} ${String(p.marcador.local)} - ${String(p.marcador.visita)} ${nombres.get(p.visitaId) ?? "?"}`}
               {p.penalesLocal !== null && p.penalesVisita !== null ? (
                 <span className="text-sm text-stone-500"> (pen. {p.penalesLocal}-{p.penalesVisita})</span>
@@ -208,9 +209,9 @@ function JugadoresTab({ ligaId }: { ligaId: string }): JSX.Element {
   if (!data || data.length === 0) return <Empty texto="Sin datos." />;
   return (
     <Card className="overflow-x-auto p-2">
-      <table className="w-full text-sm">
+      <table className="w-full text-sm text-neutral-800">
         <thead>
-          <tr className="text-stone-500">
+          <tr>
             <SortTH col="nombre" label="Jugador" orden={orden.orden} onOrdenar={orden.alternar} align="left" />
             <SortTH col="pj" label="PJ" orden={orden.orden} onOrdenar={orden.alternar} />
             <SortTH col="pg" label="PG" orden={orden.orden} onOrdenar={orden.alternar} />
@@ -225,7 +226,7 @@ function JugadoresTab({ ligaId }: { ligaId: string }): JSX.Element {
         </thead>
         <tbody>
           {orden.filas.map((f) => (
-            <tr key={f.jugadorId} className="border-t border-stone-100">
+            <tr key={f.jugadorId} className="border-t border-neutral-300">
               <td className="p-2 text-left">{f.nombre}</td>
               <td className="p-2 text-center">{f.pj}</td>
               <td className="p-2 text-center">{f.pg}</td>

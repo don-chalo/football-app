@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { api, mensajeError } from "../api/client";
 import type { Equipo, Liga, PartidoDetalle } from "../api/types";
 import { useSession } from "../auth/Session";
-import { Button, Card, Input } from "../components/ui";
+import { Button, Card, Input, Title } from "../components/ui";
 import { usePolling } from "../hooks/usePolling";
 
 export function PartidoFormPage(): JSX.Element {
@@ -46,10 +46,10 @@ export function PartidoFormPage(): JSX.Element {
   }
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex items-center justify-between">
+    <div className="flex flex-col gap-2">
+      <Title>
         <h1 className="text-xl font-bold">NUEVO PARTIDO</h1>
-      </div>      
+      </Title>
       <Card>
         <form onSubmit={(e) => { void onSubmit(e); }} className="flex flex-col gap-2">
           <select

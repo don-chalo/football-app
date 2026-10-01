@@ -21,22 +21,22 @@ function Barra(): JSX.Element {
   const [menuAbierto, setMenuAbierto] = useState(false);
   const cerrarMenu = () => { setMenuAbierto(false); };
   return (
-    <header className="sticky top-0 bg-black text-white px-4 min-h-14 flex items-center justify-between">
-      <Link to="/" className="font-bold min-h-11 flex items-center" tool-tip="Ir a la página principal">
+    <header className="sticky top-0 bg-neutral-800 px-4 min-h-14 flex items-center justify-between">
+      <Link to="/" className="font-bold min-h-11 flex items-center text-neutral-300" tool-tip="Ir a la página principal">
         ACSED WEB
       </Link>      
       <NavigationMenu.Root className="relative z-50 hidden sm:block">
-        <NavigationMenu.List className="flex items-center gap-1 sticky top-0 bg-black text-white px-4 min-h-14 justify-end">
+        <NavigationMenu.List className="flex items-center gap-1 sticky top-0 px-4 min-h-14 justify-end text-neutral-300">
           <NavigationMenu.Item>
             <NavigationMenu.Link asChild>
-              <NavLink to="/ligas" className="min-h-11 flex items-center bg-black text-white border border-gray-700 rounded-lg px-3">
+              <NavLink to="/ligas" className="min-h-11 flex items-center border border-neutral-600 rounded-lg px-3">
                 Ligas/Copas
               </NavLink>
             </NavigationMenu.Link>
           </NavigationMenu.Item>
           <NavigationMenu.Item>
             <NavigationMenu.Link asChild>
-              <NavLink to="/estadisticas" className="min-h-11 flex items-center bg-black text-white border border-gray-700 rounded-lg px-3">
+              <NavLink to="/estadisticas" className="min-h-11 flex items-center border border-neutral-600 rounded-lg px-3">
                 Stats
               </NavLink>
             </NavigationMenu.Link>
@@ -45,14 +45,14 @@ function Barra(): JSX.Element {
           <>
            <NavigationMenu.Item>
             <NavigationMenu.Link asChild>              
-             <NavLink className="min-h-11 flex items-center bg-black text-white border border-gray-700 rounded-lg px-3" to="/admin">
+             <NavLink className="min-h-11 flex items-center border border-neutral-600 rounded-lg px-3" to="/admin">
                Admin
              </NavLink>
             </NavigationMenu.Link>
            </NavigationMenu.Item>
            <NavigationMenu.Item>
             <NavigationMenu.Link asChild>
-              <NavLink className="min-h-11 flex items-center bg-black text-white border border-gray-700 rounded-lg px-3" to="" onClick={() => {
+              <NavLink className="min-h-11 flex items-center border border-neutral-600 rounded-lg px-3" to="" onClick={() => {
                  logout();
                  nav("/");
               }}>
@@ -64,7 +64,7 @@ function Barra(): JSX.Element {
          ) : (
           <NavigationMenu.Item>
             <NavigationMenu.Link asChild>
-              <Link className="min-h-11 flex items-center bg-black text-white border border-gray-700 rounded-lg px-3" to="/login">
+              <Link className="min-h-11 flex items-center border border-neutral-600 rounded-lg px-3" to="/login">
                 Ingresar
               </Link>
             </NavigationMenu.Link>
@@ -85,17 +85,17 @@ function Barra(): JSX.Element {
           aria-controls="menu-movil"
           aria-label={menuAbierto ? "Cerrar menú" : "Abrir menú"}
           onClick={() => { setMenuAbierto(!menuAbierto); }}
-          className="min-h-11 min-w-11 flex items-center justify-center border border-gray-700 rounded-lg px-3"
+          className="min-h-11 min-w-11 flex items-center justify-center border border-neutral-600 text-neutral-300 rounded-lg px-3"
         >
           <span aria-hidden="true">{menuAbierto ? "X" : "Menu"}</span>
         </button>
 
         {menuAbierto ? (
-          <nav id="menu-movil" aria-label="Menú principal" className="absolute right-0 top-full z-50 mt-2 flex w-52 flex-col gap-1 rounded-xl border border-gray-700 bg-black p-2">
+          <nav id="menu-movil" aria-label="Menú principal" className="absolute right-0 top-full z-50 mt-2 flex w-52 flex-col gap-1 rounded-xl border border-neutral-600 bg-neutral-800 text-neutral-300 p-2">
             <NavLink
               to="/ligas"
               onClick={cerrarMenu}
-              className="min-h-11 flex items-center justify-start border border-gray-700 rounded-lg px-3"
+              className="min-h-11 flex items-center justify-start border border-neutral-600 rounded-lg px-3"
             >
               Ligas/Copas
             </NavLink>
@@ -103,7 +103,7 @@ function Barra(): JSX.Element {
             <NavLink
               to="/estadisticas"
               onClick={cerrarMenu}
-              className="min-h-11 flex items-center justify-start border border-gray-700 rounded-lg px-3"
+              className="min-h-11 flex items-center justify-start border border-neutral-600 rounded-lg px-3"
             >
               Stats
             </NavLink>
@@ -112,7 +112,7 @@ function Barra(): JSX.Element {
                 <NavLink
                   to="/admin"
                   onClick={cerrarMenu}
-                  className="min-h-11 flex items-center justify-start border border-gray-700 rounded-lg px-3"
+                  className="min-h-11 flex items-center justify-start border border-neutral-600 rounded-lg px-3"
                 >
                   Admin
                 </NavLink>
@@ -124,7 +124,7 @@ function Barra(): JSX.Element {
                     logout();
                     nav("/");
                   }}
-                  className="min-h-11 flex items-center justify-start border border-gray-700 rounded-lg px-3"
+                  className="min-h-11 flex items-center justify-start border border-neutral-600 rounded-lg px-3"
                 >
                   Salir
                 </NavLink>
@@ -133,7 +133,7 @@ function Barra(): JSX.Element {
               <Link
                 to="/login"
                 onClick={cerrarMenu}
-                className="min-h-11 flex items-center justify-start border border-gray-700 rounded-lg px-3"
+                className="min-h-11 flex items-center justify-start border border-neutral-600 rounded-lg px-3"
               >
                 Ingresar
               </Link>

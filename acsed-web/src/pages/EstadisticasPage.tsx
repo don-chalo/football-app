@@ -1,10 +1,12 @@
 import { useState, type JSX } from "react";
+import * as Tabs from "@radix-ui/react-tabs";
 import { api } from "../api/client";
 import type { Equipo, FilaEquipo, FilaJugador, Historial } from "../api/types";
-import { Button, Card, Empty, ErrorMsg, Input, Loading } from "../components/ui";
+import { Button, Card, Empty, ErrorMsg, Input, Loading, Title } from "../components/ui";
 import { SortTH } from "../components/SortTH";
 import { usePolling } from "../hooks/usePolling";
 import { useOrden } from "../hooks/useOrden";
+import { Tab } from "../components/Tab";
 
 function anoActual(): { desde: string; hasta: string } {
   const y = new Date().getFullYear();
@@ -14,27 +16,26 @@ function anoActual(): { desde: string; hasta: string } {
 export function EstadisticasPage(): JSX.Element {
   const [tab, setTab] = useState<"equipos" | "jugadores" | "duelo">("equipos");
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex items-center justify-between">
+    <div className="flex flex-col gap-2">
+      <Title>
         <h1 className="text-xl font-bold">ESTADÍSTICAS</h1>
-      </div>
-      <div className="flex gap-1">
-        {([
-          ["equipos", "Equipos"],
-          ["jugadores", "Jugadores"],
-          ["duelo", "Duelo"],
-        ] as Array<["equipos" | "jugadores" | "duelo", string]>).map(([t, txt]) => (
-          <button
-            key={t}
-            type="button"
-            onClick={() => { setTab(t); }}
-            className={`flex-1 min-h-11 rounded-lg font-medium ${tab === t ? "bg-emerald-700 text-white" : "bg-white border border-stone-200"}`}
-          >
-            {txt}
-          </button>
-        ))}
-      </div>
-      {tab === "equipos" ? <TablaGlobal /> : tab === "jugadores" ? <JugadoresGlobal /> : <Duelo />}
+      </Title>
+      <Tabs.Tabs defaultValue="equipos" onValueChange={(v) => { setTab(v as "equipos" | "jugadores" | "duelo"); }}>
+        <Tabs.List className="w-full flex justify-around mb-2">
+          <Tab value="equipos" label="Equipos" selected={tab === "equipos"} />
+          <Tab value="jugadores" label="Jugadores" selected={tab === "jugadores"} />
+          <Tab value="duelo" label="Duelo" selected={tab === "duelo"} />
+        </Tabs.List>
+        <Tabs.Content value="equipos">
+          <TablaGlobal />
+        </Tabs.Content>
+        <Tabs.Content value="jugadores">
+          <JugadoresGlobal />
+        </Tabs.Content>
+        <Tabs.Content value="duelo">
+          <Duelo />
+        </Tabs.Content>
+      </Tabs.Tabs>
     </div>
   );
 }

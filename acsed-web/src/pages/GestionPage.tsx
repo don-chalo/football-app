@@ -1,9 +1,11 @@
 import { useState, type FormEvent, type JSX } from "react";
+import * as Tabs from "@radix-ui/react-tabs";
 import { api, mensajeError } from "../api/client";
 import type { Asignacion, BulkResult, Equipo, Jugador, Liga, PublicUser } from "../api/types";
 import { useSession } from "../auth/Session";
-import { Button, Card, Empty, ErrorMsg, Input, Loading } from "../components/ui";
+import { Button, Card, Empty, ErrorMsg, Input, Loading, Title } from "../components/ui";
 import { usePolling } from "../hooks/usePolling";
+import { Tab } from "../components/Tab";
 
 type Tab = "ligas" | "equipos" | "jugadores" | "usuarios";
 
@@ -11,31 +13,32 @@ export function GestionPage(): JSX.Element {
   const { esSistema } = useSession();
   const [tab, setTab] = useState<Tab>("ligas");
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex items-center justify-between">
+    <div className="flex flex-col gap-2">
+      <Title>
         <h1 className="text-xl font-bold">GESTIÓN DE LIGAS/EQUIPOS/JUGADORES</h1>
-      </div>
-      <div className="flex gap-1 overflow-x-auto">
-        {([
-          ["ligas", "Ligas"],
-          ["equipos", "Equipos"],
-          ["jugadores", "Jugadores"],
-          ...(esSistema ? [["usuarios", "Usuarios"] as [Tab, string]] : []),
-        ] as Array<[Tab, string]>).map(([t, txt]) => (
-          <button
-            key={t}
-            type="button"
-            onClick={() => { setTab(t); }}
-            className={`flex-1 min-h-[44px] px-2 rounded-lg font-medium whitespace-nowrap ${tab === t ? "bg-emerald-700 text-white" : "bg-white border border-stone-200"}`}
-          >
-            {txt}
-          </button>
-        ))}
-      </div>
-      {tab === "ligas" ? <LigasTab /> : null}
-      {tab === "equipos" ? <NombresTab base="/equipos" titulo="Equipo" /> : null}
-      {tab === "jugadores" ? <JugadoresTab /> : null}
-      {tab === "usuarios" && esSistema ? <UsuariosTab /> : null}
+      </Title>
+      <Tabs.Tabs defaultValue="ligas" onValueChange={(v) => { setTab(v as Tab); }}>
+        <Tabs.List className="w-full flex justify-around mb-2">
+          <Tab value="ligas" label="Ligas" selected={tab === "ligas"} />
+          <Tab value="equipos" label="Equipos" selected={tab === "equipos"} />
+          <Tab value="jugadores" label="Jugadores" selected={tab === "jugadores"} />
+          {esSistema ? <Tab value="usuarios" label="Usuarios" selected={tab === "usuarios"} /> : null}
+        </Tabs.List>
+        <Tabs.Content value="ligas">
+          <LigasTab />
+        </Tabs.Content>
+        <Tabs.Content value="equipos">
+          <NombresTab base="/equipos" titulo="Equipo" />
+        </Tabs.Content>
+        <Tabs.Content value="jugadores">
+          <JugadoresTab />
+        </Tabs.Content>
+        {esSistema ? (
+          <Tabs.Content value="usuarios">
+            <UsuariosTab />
+          </Tabs.Content>
+        ) : null}
+      </Tabs.Tabs>
     </div>
   );
 }

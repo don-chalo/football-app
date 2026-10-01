@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { api } from "../api/client";
 import type { Liga } from "../api/types";
 import { useSession } from "../auth/Session";
-import { Badge, Card, Empty, ErrorMsg, Loading } from "../components/ui";
+import { Badge, Card, Empty, ErrorMsg, Loading, Title } from "../components/ui";
 import { usePolling } from "../hooks/usePolling";
 
 export function AdminHomePage(): JSX.Element {
@@ -14,11 +14,11 @@ export function AdminHomePage(): JSX.Element {
   const visibles = (ligas.data ?? []).filter((l) => esSistema || misLigas.includes(l.id));
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex flex-row content-center gap-1">
+    <div className="flex flex-col gap-2">
+      <Title>
         <h1 className="text-xl font-bold">HOLA, {user?.username.toUpperCase()}</h1>
         <p className="text-sm text-stone-500 content-center"> [{esSistema ? "Admin de sistema" : "Admin de partidos"}]</p>
-      </div>
+      </Title>
       <Link to="/admin/gestion">
         <Card>
           <span className="font-bold min-h-11 flex items-center">Gestión (ligas, equipos, jugadores{esSistema ? ", usuarios" : ""})</span>
