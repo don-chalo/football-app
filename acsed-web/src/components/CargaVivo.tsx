@@ -1,6 +1,7 @@
 import { useMemo, useState, type JSX } from "react";
 import { Collapsible, Content, Trigger } from "@radix-ui/react-collapsible";
-import { api, mensajeError } from "../api/client";
+import { mensajeError } from "../api/client";
+import { services } from "../api/services";
 import type { Convocatoria, Evento, TipoEvento } from "../api/types";
 import { Badge, Button, Input, Sheet, Toast } from "./ui";
 
@@ -74,7 +75,7 @@ export function CargaVivo({ partidoId, convocatorias, eventos, nombreJugador, no
     setError(null);
     try {
       const min = minuto.trim() === "" ? null : Number(minuto);
-      const ev = await api.post<Evento>(`/partidos/${partidoId}/eventos`, {
+      const ev = await services.eventos.registrar(partidoId, {
         jugadorId: hoja.jugadorId,
         equipoId: hoja.equipoId,
         tipo,
@@ -92,7 +93,7 @@ export function CargaVivo({ partidoId, convocatorias, eventos, nombreJugador, no
   }
 
   async function borrar(id: string): Promise<void> {
-    await api.del(`/eventos/${id}`);
+    await services.eventos.eliminar(id);
     if (deshacerId === id) setDeshacerId(null);
     onCambio();
   }

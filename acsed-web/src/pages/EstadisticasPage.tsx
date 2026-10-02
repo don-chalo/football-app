@@ -1,7 +1,7 @@
 import { useState, type JSX } from "react";
 import * as Tabs from "@radix-ui/react-tabs";
-import { api } from "../api/client";
-import type { Equipo, FilaEquipo, FilaJugador, Historial } from "../api/types";
+import { services } from "../api/services";
+import type { FilaEquipo, FilaJugador } from "../api/types";
 import { Button, Card, Empty, ErrorMsg, Input, Loading, Title } from "../components/ui";
 import { SortTH } from "../components/SortTH";
 import { usePolling } from "../hooks/usePolling";
@@ -40,16 +40,12 @@ export function EstadisticasPage(): JSX.Element {
   );
 }
 
-function rangoQuery(desde: string, hasta: string): string {
-  return `desde=${desde}&hasta=${hasta}`;
-}
-
 function TablaGlobal(): JSX.Element {
   const d = anoActual();
   const [desde, setDesde] = useState(d.desde);
   const [hasta, setHasta] = useState(d.hasta);
   const { data, error, loading, refresh } = usePolling(
-    () => api.get<FilaEquipo[]>(`/estadisticas/equipos?${rangoQuery(desde, hasta)}`),
+    () => services.estadisticas.porEquipos({ desde, hasta }),
     15_000,
   );
   return (
@@ -115,7 +111,7 @@ function JugadoresGlobal(): JSX.Element {
   const [desde, setDesde] = useState(d.desde);
   const [hasta, setHasta] = useState(d.hasta);
   const { data, error, loading, refresh } = usePolling(
-    () => api.get<FilaJugador[]>(`/estadisticas/jugadores?${rangoQuery(desde, hasta)}`),
+    () => services.estadisticas.porJugadores({ desde, hasta }),
     15_000,
   );
   return (
@@ -147,8 +143,6 @@ function TablaJugadores({ filas }: { filas: FilaJugador[] }): JSX.Element {
         return f.goles;
       case "autogoles":
         return f.autogoles;
-      case "pj2":
-        return f.pj;
       case "convocados":
         return f.convocados;
       default:
@@ -166,7 +160,6 @@ function TablaJugadores({ filas }: { filas: FilaJugador[] }): JSX.Element {
           <SortTH col="pp" label="PP" orden={orden.orden} onOrdenar={orden.alternar} />
           <SortTH col="goles" label="Goles" orden={orden.orden} onOrdenar={orden.alternar} />
           <SortTH col="autogoles" label="Autogoles" orden={orden.orden} onOrdenar={orden.alternar} />
-          <SortTH col="pj2" label="PJ" orden={orden.orden} onOrdenar={orden.alternar} />
           <SortTH col="convocados" label="Convocado" orden={orden.orden} onOrdenar={orden.alternar} />
           <SortTH col="ausentes" label="Ausencias" orden={orden.orden} onOrdenar={orden.alternar} />
         </tr>
@@ -181,7 +174,6 @@ function TablaJugadores({ filas }: { filas: FilaJugador[] }): JSX.Element {
             <td className="p-2 text-center">{f.pp}</td>
             <td className="p-2 text-center font-bold">{f.goles}</td>
             <td className="p-2 text-center">{f.autogoles}</td>
-            <td className="p-2 text-center">{f.pj}</td>
             <td className="p-2 text-center">{f.convocados}</td>
             <td className="p-2 text-center">{f.ausentes}</td>
           </tr>
@@ -192,14 +184,14 @@ function TablaJugadores({ filas }: { filas: FilaJugador[] }): JSX.Element {
 }
 
 function Duelo(): JSX.Element {
-  const equipos = usePolling(() => api.get<Equipo[]>("/equipos"), 60_000);
+  const equipos = usePolling(() => services.equipos.listar(), 60_000);
   const [a, setA] = useState("");
   const [b, setB] = useState("");
   const [ver, setVer] = useState(0);
   const hist = usePolling(
     () =>
       a && b
-        ? api.get<Historial>(`/estadisticas/enfrentamientos?equipo_a=${a}&equipo_b=${b}`)
+        ? services.estadisticas.enfrentamiento(a, b)
         : Promise.resolve(null),
     60_000,
     ver > 0,

@@ -1,12 +1,11 @@
 import type { JSX } from "react";
 import { Link } from "react-router-dom";
-import { api } from "../api/client";
-import type { Liga } from "../api/types";
+import { services } from "../api/services";
 import { Badge, Card, Empty, ErrorMsg, Loading, Title } from "../components/ui";
 import { usePolling } from "../hooks/usePolling";
 
 export function LigasPage(): JSX.Element {
-  const { data, error, loading, refresh } = usePolling(() => api.get<Liga[]>("/ligas"), 30_000);
+  const { data, error, loading, refresh } = usePolling(() => services.ligas.listar(), 30_000);
   if (loading && !data) return <Loading />;
   if (error && !data) return <ErrorMsg error={error} onRetry={refresh} />;
   if (!data || data.length === 0) return <Empty texto="Sin ligas todavía." />;

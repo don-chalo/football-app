@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { api } from "../api/client";
+import { services } from "../api/services";
 import type { Equipo, Jugador } from "../api/types";
 import { usePolling } from "../hooks/usePolling";
 
@@ -11,10 +11,10 @@ function useCatalogo<T extends { id: string; nombre: string }>(fetcher: () => Pr
 
 /** Mapa id→nombre de equipos. Solo pide GET /equipos. */
 export function useMapaEquipos(): Map<string, string> {
-  return useCatalogo<Equipo>(() => api.get<Equipo[]>("/equipos"));
+  return useCatalogo<Equipo>(() => services.equipos.listar());
 }
 
 /** Mapa id→nombre de jugadores. Solo pide GET /jugadores. */
 export function useMapaJugadores(): Map<string, string> {
-  return useCatalogo<Jugador>(() => api.get<Jugador[]>("/jugadores"));
+  return useCatalogo<Jugador>(() => services.jugadores.listar());
 }

@@ -1,7 +1,7 @@
 import { useState, type FormEvent, type JSX } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { api, mensajeError } from "../api/client";
-import type { Equipo, Liga, PartidoDetalle } from "../api/types";
+import { mensajeError } from "../api/client";
+import { services } from "../api/services";
 import { useSession } from "../auth/Session";
 import { Button, Card, Input, Title } from "../components/ui";
 import { usePolling } from "../hooks/usePolling";
@@ -11,8 +11,8 @@ export function PartidoFormPage(): JSX.Element {
   const nav = useNavigate();
   const [params] = useSearchParams();
   const ligaFija = params.get("ligaId") ?? "";
-  const ligas = usePolling(() => api.get<Liga[]>("/ligas"), 60_000);
-  const equipos = usePolling(() => api.get<Equipo[]>("/equipos"), 60_000);
+  const ligas = usePolling(() => services.ligas.listar(), 60_000);
+  const equipos = usePolling(() => services.equipos.listar(), 60_000);
   const [ligaId, setLigaId] = useState(ligaFija);
   const [localId, setLocalId] = useState("");
   const [visitaId, setVisitaId] = useState("");
@@ -30,7 +30,7 @@ export function PartidoFormPage(): JSX.Element {
     setError(null);
     setEnviando(true);
     try {
-      const p = await api.post<PartidoDetalle>("/partidos", {
+      const p = await services.partidos.crear({
         ligaId,
         localId,
         visitaId,

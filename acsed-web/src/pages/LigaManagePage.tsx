@@ -1,30 +1,16 @@
 import type { JSX } from "react";
 import { Link, useParams } from "react-router-dom";
-import { api } from "../api/client";
-import type { Liga } from "../api/types";
+import { services } from "../api/services";
 import { Badge, Card, Empty, ErrorMsg, Loading, Title } from "../components/ui";
 import { useMapaEquipos } from "../hooks/useNombres";
 import { porFechaDesc } from "../hooks/orden";
 import { usePolling } from "../hooks/usePolling";
 import { PartidoCard } from "../components/PartidoCard";
 
-interface PartidoRow {
-  id: string;
-  localId: string;
-  visitaId: string;
-  fecha: string;
-  estado: string;
-  fase: string;
-  penalesLocal: number | null;
-  penalesVisita: number | null;
-  clasificadoId: string | null;
-  marcador: { local: number; visita: number };
-}
-
 export function LigaManagePage(): JSX.Element {
   const { id = "" } = useParams();
-  const liga = usePolling(() => api.get<Liga>(`/ligas/${id}`), 15_000);
-  const partidos = usePolling(() => api.get<PartidoRow[]>(`/partidos?ligaId=${id}`), 5_000);
+  const liga = usePolling(() => services.ligas.obtener(id), 15_000);
+  const partidos = usePolling(() => services.partidos.porLiga(id), 5_000);
   const mapaEquipos = useMapaEquipos();
   const esCopa = liga.data?.formato === "copa";
 

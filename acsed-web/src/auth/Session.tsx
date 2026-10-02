@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useMemo, useState, type JSX, type ReactNode } from "react";
-import { api, setToken as guardarToken, getToken } from "../api/client";
-import type { LoginResponse, PublicUser } from "../api/types";
+import { getToken, setToken as guardarToken } from "../api/client";
+import { services } from "../api/services";
+import type { PublicUser } from "../api/types";
 
 interface Session {
   user: PublicUser | null;
@@ -29,7 +30,7 @@ export function SessionProvider({ children }: { children: ReactNode }): JSX.Elem
   const [misLigas, setMisLigas] = useState<string[]>(() => (leerJSON(MIS_LIGAS_KEY) as string[] | null) ?? []);
 
   const login = useCallback(async (username: string, password: string): Promise<void> => {
-    const r = await api.post<LoginResponse>("/auth/login", { username, password });
+    const r = await services.auth.login({ username, password });
     guardarToken(r.token);
     setUser(r.user);
     setMisLigas(r.misLigas);

@@ -1,8 +1,9 @@
 import { useState, type FormEvent, type JSX } from "react";
 import { useParams } from "react-router-dom";
 import { Collapsible, Content, Trigger } from "@radix-ui/react-collapsible";
-import { api, mensajeError } from "../api/client";
-import type { Jugador, PartidoDetalle } from "../api/types";
+import { mensajeError } from "../api/client";
+import { services } from "../api/services";
+import type { EstadoPartido, PartidoDetalle } from "../api/types";
 import { CargaVivo } from "../components/CargaVivo";
 import { Badge, Button, Card, Empty, ErrorMsg, Input, Loading, Title } from "../components/ui";
 import { useMapaEquipos, useMapaJugadores } from "../hooks/useNombres";
@@ -10,7 +11,7 @@ import { usePolling } from "../hooks/usePolling";
 
 export function PartidoManagePage(): JSX.Element {
   const { id = "" } = useParams();
-  const detalle = usePolling(() => api.get<PartidoDetalle>(`/partidos/${id}`), 5_000);
+  const detalle = usePolling(() => services.partidos.detalle(id), 5_000);
   const mapaEquipos = useMapaEquipos();
   const mapaJugadores = useMapaJugadores();
   const [open, setOpen] = useState(true);
@@ -100,10 +101,10 @@ export function PartidoManagePage(): JSX.Element {
 
 function EstadoBotones({ id, estado, onCambio }: { id: string; estado: string; onCambio: () => void }): JSX.Element {
   const [error, setError] = useState<unknown>(null);
-  async function cambiar(nuevo: string): Promise<void> {
+  async function cambiar(nuevo: EstadoPartido): Promise<void> {
     setError(null);
     try {
-      await api.patch(`/partidos/${id}/estado`, { estado: nuevo });
+      await services.partidos.cambiarEstado(id, nuevo);
       onCambio();
     } catch (err) {
       setError(err);
@@ -132,7 +133,7 @@ export function Convocatorias({ partidoId, localId, visitaId, lista, eventos, on
   eventos: PartidoDetalle["eventos"];
   onCambio: () => void;
 }): JSX.Element {
-  const jugadores = usePolling(() => api.get<Jugador[]>("/jugadores"), 60_000);
+  const jugadores = usePolling(() => services.jugadores.listar(), 60_000);
   const mapaEquipos = useMapaEquipos();
   const mapaJugadores = useMapaJugadores();
   const [jugadorId, setJugadorId] = useState("");
@@ -146,7 +147,7 @@ export function Convocatorias({ partidoId, localId, visitaId, lista, eventos, on
     if (!jugadorId || !equipoId) return;
     setError(null);
     try {
-      await api.post(`/partidos/${partidoId}/convocatorias`, { jugadorId, equipoId });
+      await services.convocatorias.agregar(partidoId, { jugadorId, equipoId });
       setJugadorId("");
       setEquipoId("");
       onCambio();
@@ -155,9 +156,9 @@ export function Convocatorias({ partidoId, localId, visitaId, lista, eventos, on
     }
   }
 
-  async function marcar(id: string, estado: string): Promise<void> {
+  async function marcar(id: string, estado: PartidoDetalle["convocatorias"][number]["estado"]): Promise<void> {
     try {
-      await api.patch(`/convocatorias/${id}`, { estado });
+      await services.convocatorias.marcar(id, estado);
       onCambio();
     } catch (err) {
       setError(err);
@@ -178,7 +179,7 @@ export function Convocatorias({ partidoId, localId, visitaId, lista, eventos, on
     setConfirmarId(null);
     setAviso(null);
     try {
-      await api.del(`/convocatorias/${c.id}`);
+      await services.convocatorias.quitar(c.id);
       onCambio();
     } catch (err) {
       setError(err);
@@ -278,7 +279,7 @@ function PenalesForm({ partidoId, localId, visitaId, nombreEquipo, onCambio }: {
     setError(null);
     setOk(false);
     try {
-      await api.patch(`/partidos/${partidoId}`, {
+      await services.partidos.actualizarPenales(partidoId, {
         penalesLocal: gl === "" ? null : Number(gl),
         penalesVisita: gv === "" ? null : Number(gv),
         clasificadoId: clas === "" ? null : clas,

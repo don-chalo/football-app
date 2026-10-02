@@ -16,13 +16,13 @@ export function useOrden<T>(
   filas: T[],
   valor: (f: T, key: OrdenKey) => string | number,
 ): { filas: T[]; orden: Orden; alternar: (key: OrdenKey) => void } {
-  const [orden, setOrden] = useState<Orden>({ key: null, dir: "asc" });
+  const [orden, setOrden] = useState<Orden>({ key: null, dir: "desc" });
 
   function alternar(key: OrdenKey): void {
     setOrden((prev) => {
-      if (prev.key !== key) return { key, dir: "asc" };
-      if (prev.dir === "asc") return { key, dir: "desc" };
-      return { key: null, dir: "asc" };
+      if (prev.key !== key) return { key, dir: "desc" };
+      if (prev.dir === "desc") return { key, dir: "asc" };
+      return { key: null, dir: "desc" };
     });
   }
 

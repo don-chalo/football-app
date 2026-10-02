@@ -1,14 +1,13 @@
 import type { JSX } from "react";
 import { Link } from "react-router-dom";
-import { api } from "../api/client";
-import type { Liga } from "../api/types";
+import { services } from "../api/services";
 import { useSession } from "../auth/Session";
 import { Badge, Card, Empty, ErrorMsg, Loading, Title } from "../components/ui";
 import { usePolling } from "../hooks/usePolling";
 
 export function AdminHomePage(): JSX.Element {
   const { user, misLigas, esSistema } = useSession();
-  const ligas = usePolling(() => api.get<Liga[]>("/ligas"), 15_000);
+  const ligas = usePolling(() => services.ligas.listar(), 15_000);
   if (ligas.loading && !ligas.data) return <Loading />;
   if (ligas.error && !ligas.data) return <ErrorMsg error={ligas.error} onRetry={ligas.refresh} />;
   const visibles = (ligas.data ?? []).filter((l) => esSistema || misLigas.includes(l.id));

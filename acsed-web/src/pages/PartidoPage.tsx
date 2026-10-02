@@ -1,8 +1,7 @@
 import type { JSX } from "react";
 import { useParams } from "react-router-dom";
 import * as _ from "lodash";
-import { api } from "../api/client";
-import type { PartidoDetalle } from "../api/types";
+import { services } from "../api/services";
 import { ActorLine, Badge, Card, Empty, ErrorMsg, Loading, Title } from "../components/ui";
 import { useMapaEquipos, useMapaJugadores } from "../hooks/useNombres";
 import { usePolling } from "../hooks/usePolling";
@@ -11,7 +10,7 @@ const TIPO_TXT: Record<string, string> = { gol: "Gol", autogol: "Autogol", penal
 
 export function PartidoPage(): JSX.Element {
   const { id = "" } = useParams();
-  const { data, error, loading, refresh } = usePolling(() => api.get<PartidoDetalle>(`/partidos/${id}`), 12_000);
+  const { data, error, loading, refresh } = usePolling(() => services.partidos.detalle(id), 12_000);
   const mapaEquipos = useMapaEquipos();
   const mapaJugadores = useMapaJugadores();
   const goleadores = _.orderBy(

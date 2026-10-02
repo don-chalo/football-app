@@ -1,7 +1,8 @@
 import { useState, type JSX } from "react";
 import { Link, useParams } from "react-router-dom";
-import { api } from "../api/client";
-import type { FilaEquipo, FilaJugador, Liga } from "../api/types";
+import { services } from "../api/services";
+import type { FilaEquipo } from "../api/types";
+import type { PartidoListado } from "../api/partidos";
 import { Badge, Card, Empty, ErrorMsg, Loading, Title } from "../components/ui";
 import { SortTH } from "../components/SortTH";
 import { useMapaEquipos } from "../hooks/useNombres";
@@ -12,25 +13,12 @@ import { PartidoCard } from "../components/PartidoCard";
 import * as Tabs from "@radix-ui/react-tabs";
 import { Tab } from "../components/Tab";
 
-interface PartidoRow {
-  id: string;
-  localId: string;
-  visitaId: string;
-  fecha: string;
-  estado: string;
-  fase: string;
-  penalesLocal: number | null;
-  penalesVisita: number | null;
-  clasificadoId: string | null;
-  marcador: { local: number; visita: number };
-}
-
 type Tab = "partidos" | "tabla" | "jugadores";
 
 export function LigaDetailPage(): JSX.Element {
   const { id = "" } = useParams();
   const [tab, setTab] = useState<Tab>("partidos");
-  const liga = usePolling(() => api.get<Liga>(`/ligas/${id}`), 15_000);
+  const liga = usePolling(() => services.ligas.obtener(id), 15_000);
   const mapaEquipos = useMapaEquipos();
 
   if (liga.loading && !liga.data) return <Loading />;
@@ -66,7 +54,7 @@ export function LigaDetailPage(): JSX.Element {
 }
 
 function PartidosTab({ ligaId }: { ligaId: string }): JSX.Element {
-  const { data, error, loading, refresh } = usePolling(() => api.get<PartidoRow[]>(`/partidos?ligaId=${ligaId}`), 15_000);
+  const { data, error, loading, refresh } = usePolling(() => services.partidos.porLiga(ligaId), 15_000);
   const mapaEquipos = useMapaEquipos();
   if (loading && !data) return <Loading />;
   if (error && !data) return <ErrorMsg error={error} onRetry={refresh} />;
@@ -84,7 +72,7 @@ function PartidosTab({ ligaId }: { ligaId: string }): JSX.Element {
 
 function TablaTab({ ligaId, nombres }: { ligaId: string; nombres: Map<string, string> }): JSX.Element {
   const { data, error, loading, refresh } = usePolling(
-    () => api.get<FilaEquipo[]>(`/estadisticas/equipos?liga_ids=${ligaId}`),
+    () => services.estadisticas.porLigaEquipos(ligaId),
     15_000,
   );
   const nombreDe = (f: FilaEquipo): string => f.nombre || nombres.get(f.equipoId) || "";
@@ -146,11 +134,11 @@ function TablaTab({ ligaId, nombres }: { ligaId: string; nombres: Map<string, st
 }
 
 function LlavesTab({ ligaId, nombres }: { ligaId: string; nombres: Map<string, string> }): JSX.Element {
-  const { data, error, loading, refresh } = usePolling(() => api.get<PartidoRow[]>(`/partidos?ligaId=${ligaId}`), 15_000);
+  const { data, error, loading, refresh } = usePolling(() => services.partidos.porLiga(ligaId), 15_000);
   if (loading && !data) return <Loading />;
   if (error && !data) return <ErrorMsg error={error} onRetry={refresh} />;
   if (!data || data.length === 0) return <Empty texto="Sin partidos." />;
-  const porFase = new Map<string, PartidoRow[]>();
+  const porFase = new Map<string, PartidoListado[]>();
   for (const p of porFechaDesc(data)) {
     const f = p.fase || "—";
     porFase.set(f, [...(porFase.get(f) ?? []), p]);
@@ -177,7 +165,7 @@ function LlavesTab({ ligaId, nombres }: { ligaId: string; nombres: Map<string, s
 
 function JugadoresTab({ ligaId }: { ligaId: string }): JSX.Element {
   const { data, error, loading, refresh } = usePolling(
-    () => api.get<FilaJugador[]>(`/estadisticas/jugadores?liga_ids=${ligaId}`),
+    () => services.estadisticas.porLigaJugadores(ligaId),
     15_000,
   );
   const orden = useOrden(data ?? [], (f, k) => {
