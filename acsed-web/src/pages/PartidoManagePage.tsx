@@ -5,9 +5,10 @@ import { mensajeError } from "../api/client";
 import { services } from "../api/services";
 import type { EstadoPartido, PartidoDetalle } from "../api/types";
 import { CargaVivo } from "../components/CargaVivo";
-import { Badge, Button, Card, Empty, ErrorMsg, Input, Loading, Title } from "../components/ui";
+import { Badge, Button, Card, Empty, ErrorMsg, Input, Loading, Title, tonoPorEstado } from "../components/ui";
 import { useMapaEquipos, useMapaJugadores } from "../hooks/useNombres";
 import { usePolling } from "../hooks/usePolling";
+import { ChevronDownIcon, ChevronUpIcon } from "@radix-ui/react-icons";
 
 export function PartidoManagePage(): JSX.Element {
   const { id = "" } = useParams();
@@ -27,7 +28,7 @@ export function PartidoManagePage(): JSX.Element {
         <h1 className="text-lg font-bold">
           {(mapaEquipos.get(p.localId) ?? "?").toUpperCase()} {p.marcador.local} - {p.marcador.visita} {(mapaEquipos.get(p.visitaId) ?? "?").toUpperCase()}
         </h1>
-        <Badge>{p.estado}</Badge>
+        <Badge tono={tonoPorEstado(p.estado)} pulso={p.estado === "en_juego"}>{p.estado}</Badge>
       </Title>
       <div>
         {p.penalesLocal !== null && p.penalesVisita !== null ? (
@@ -55,7 +56,9 @@ export function PartidoManagePage(): JSX.Element {
           <Trigger asChild>
             <div className="font-bold mb-2 flex flex-row justify-between">
               <h2 className="font-bold mb-2">Convocados</h2>
-              <h2 className="font-bold mb-2">{open ? "-" : "+"}</h2>
+              {
+                open ? <ChevronUpIcon className="w-5 h-5" /> : <ChevronDownIcon className="w-5 h-5" />
+              }
             </div>
           </Trigger>
           <Content>
@@ -303,7 +306,7 @@ function PenalesForm({ partidoId, localId, visitaId, nombreEquipo, onCambio }: {
         <option value={visitaId}>{nombreEquipo(visitaId)}</option>
       </select>
       {error ? <p className="text-red-700">{mensajeError(error)}</p> : null}
-      {ok ? <p className="text-emerald-700">Guardado (no suma a goleadores).</p> : null}
+      {ok ? <p className="text-cancha-700">Guardado (no suma a goleadores).</p> : null}
       <Button>Guardar penales</Button>
     </form>
   );

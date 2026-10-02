@@ -154,7 +154,7 @@ function LlavesTab({ ligaId, nombres }: { ligaId: string; nombres: Map<string, s
               {p.penalesLocal !== null && p.penalesVisita !== null ? (
                 <span className="text-sm text-stone-500"> (pen. {p.penalesLocal}-{p.penalesVisita})</span>
               ) : null}
-              {p.clasificadoId ? <span className="text-sm text-emerald-700"> → {nombres.get(p.clasificadoId)}</span> : null}
+              {p.clasificadoId ? <span className="text-sm text-cancha-700 font-medium"> → {nombres.get(p.clasificadoId)}</span> : null}
             </Link>
           ))}
         </Card>

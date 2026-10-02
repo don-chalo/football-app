@@ -192,7 +192,7 @@ function JugadoresTab(): JSX.Element {
       <Card>
         <h2 className="font-bold mb-2">Alta masiva (uno por línea)</h2>
         <form onSubmit={(e) => { void bulk(e); }} className="flex flex-col gap-2">
-          <textarea aria-label="Nombres" rows={4} className="rounded-lg border border-stone-300 p-2" value={masivo} onChange={(e) => { setMasivo(e.target.value); }} />
+          <textarea aria-label="Nombres" rows={4} className="rounded-lg border border-cancha-950/20 p-2" value={masivo} onChange={(e) => { setMasivo(e.target.value); }} />
           {error ? <p className="text-red-700">{mensajeError(error)}</p> : null}
           {resultado ? (
             <p className="text-sm">

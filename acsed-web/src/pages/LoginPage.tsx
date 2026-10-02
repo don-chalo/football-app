@@ -38,7 +38,7 @@ export function LoginPage(): JSX.Element {
             <div className="Root grid grid-cols-6">
               <PasswordToggleField.Input
                 aria-label="Contraseña"
-                className="Input col-span-5 px-3 min-h-11 rounded-lg border border-stone-300 bg-white"
+                className="Input col-span-5 px-3 min-h-11 rounded-lg border border-cancha-950/20 bg-white"
                 placeholder="Contraseña"
                 value={password}
                 onChange={(e) => { setPassword(e.target.value); }}

@@ -13,66 +13,46 @@ import { LoginPage } from "./pages/LoginPage";
 import { PartidoFormPage } from "./pages/PartidoFormPage";
 import { PartidoManagePage } from "./pages/PartidoManagePage";
 import { PartidoPage } from "./pages/PartidoPage";
-import * as NavigationMenu from "@radix-ui/react-navigation-menu";
 
 function Barra(): JSX.Element {
   const { user, logout } = useSession();
   const nav = useNavigate();
   const [menuAbierto, setMenuAbierto] = useState(false);
   const cerrarMenu = () => { setMenuAbierto(false); };
+  const claseNav = ({ isActive }: { isActive: boolean }): string =>
+    `min-h-11 flex items-center border rounded-lg px-3 ${isActive ? "bg-energia-400 text-cancha-950 border-transparent font-bold" : "border-white/20 text-white"}`;
+  const claseNavMovil = ({ isActive }: { isActive: boolean }): string =>
+    `min-h-11 flex items-center justify-start border rounded-lg px-3 ${isActive ? "bg-energia-400 text-cancha-950 border-transparent font-bold" : "border-white/20 text-white"}`;
   return (
-    <header className="sticky top-0 bg-neutral-800 px-4 min-h-14 flex items-center justify-between">
-      <Link to="/" className="font-bold min-h-11 flex items-center text-neutral-300" tool-tip="Ir a la página principal">
+    <header className="sticky top-0 bg-cancha-950 px-4 min-h-14 flex items-center justify-between">
+      <Link to="/" className="font-black tracking-wide min-h-11 flex items-center text-energia-400" tool-tip="Ir a la página principal">
         ACSED WEB
       </Link>      
-      <NavigationMenu.Root className="relative z-50 hidden sm:block">
-        <NavigationMenu.List className="flex items-center gap-1 sticky top-0 px-4 min-h-14 justify-end text-neutral-300">
-          <NavigationMenu.Item>
-            <NavigationMenu.Link asChild>
-              <NavLink to="/ligas" className="min-h-11 flex items-center border border-neutral-600 rounded-lg px-3">
-                Ligas/Copas
-              </NavLink>
-            </NavigationMenu.Link>
-          </NavigationMenu.Item>
-          <NavigationMenu.Item>
-            <NavigationMenu.Link asChild>
-              <NavLink to="/estadisticas" className="min-h-11 flex items-center border border-neutral-600 rounded-lg px-3">
-                Stats
-              </NavLink>
-            </NavigationMenu.Link>
-          </NavigationMenu.Item>
-         {user ? (
+      <nav aria-label="Navegación principal" className="hidden sm:flex items-center gap-1">
+        <NavLink to="/ligas" className={claseNav}>
+          Ligas/Copas
+        </NavLink>
+        <NavLink to="/estadisticas" className={claseNav}>
+          Stats
+        </NavLink>
+        {user ? (
           <>
-           <NavigationMenu.Item>
-            <NavigationMenu.Link asChild>              
-             <NavLink className="min-h-11 flex items-center border border-neutral-600 rounded-lg px-3" to="/admin">
-               Admin
-             </NavLink>
-            </NavigationMenu.Link>
-           </NavigationMenu.Item>
-           <NavigationMenu.Item>
-            <NavigationMenu.Link asChild>
-              <NavLink className="min-h-11 flex items-center border border-neutral-600 rounded-lg px-3" to="" onClick={() => {
-                 logout();
-                 nav("/");
-              }}>
-                Salir
-              </NavLink>
-            </NavigationMenu.Link>
-           </NavigationMenu.Item>
+            <NavLink className={claseNav} to="/admin">
+              Admin
+            </NavLink>
+            <NavLink className={claseNav} to="" onClick={() => {
+              logout();
+              nav("/");
+            }}>
+              Salir
+            </NavLink>
           </>
-         ) : (
-          <NavigationMenu.Item>
-            <NavigationMenu.Link asChild>
-              <Link className="min-h-11 flex items-center border border-neutral-600 rounded-lg px-3" to="/login">
-                Ingresar
-              </Link>
-            </NavigationMenu.Link>
-          </NavigationMenu.Item>
-
-         )}
-        </NavigationMenu.List>
-      </NavigationMenu.Root>
+        ) : (
+          <Link className="min-h-11 flex items-center border border-white/20 text-white rounded-lg px-3" to="/login">
+            Ingresar
+          </Link>
+        )}
+      </nav>
       <div className="relative md:hidden" onKeyDown={(event) => {
           if (event.key === "Escape") {
             setMenuAbierto(false);
@@ -85,17 +65,17 @@ function Barra(): JSX.Element {
           aria-controls="menu-movil"
           aria-label={menuAbierto ? "Cerrar menú" : "Abrir menú"}
           onClick={() => { setMenuAbierto(!menuAbierto); }}
-          className="min-h-11 min-w-11 flex items-center justify-center border border-neutral-600 text-neutral-300 rounded-lg px-3"
+          className="min-h-11 min-w-11 flex items-center justify-center border border-white/20 text-white rounded-lg px-3"
         >
           <span aria-hidden="true">{menuAbierto ? "X" : "Menu"}</span>
         </button>
 
         {menuAbierto ? (
-          <nav id="menu-movil" aria-label="Menú principal" className="absolute right-0 top-full z-50 mt-2 flex w-52 flex-col gap-1 rounded-xl border border-neutral-600 bg-neutral-800 text-neutral-300 p-2">
+          <nav id="menu-movil" aria-label="Menú principal" className="absolute right-0 top-full z-50 mt-2 flex w-52 flex-col gap-1 rounded-xl border border-white/20 bg-cancha-950 p-2">
             <NavLink
               to="/ligas"
               onClick={cerrarMenu}
-              className="min-h-11 flex items-center justify-start border border-neutral-600 rounded-lg px-3"
+              className={claseNavMovil}
             >
               Ligas/Copas
             </NavLink>
@@ -103,7 +83,7 @@ function Barra(): JSX.Element {
             <NavLink
               to="/estadisticas"
               onClick={cerrarMenu}
-              className="min-h-11 flex items-center justify-start border border-neutral-600 rounded-lg px-3"
+              className={claseNavMovil}
             >
               Stats
             </NavLink>
@@ -112,7 +92,7 @@ function Barra(): JSX.Element {
                 <NavLink
                   to="/admin"
                   onClick={cerrarMenu}
-                  className="min-h-11 flex items-center justify-start border border-neutral-600 rounded-lg px-3"
+                  className={claseNavMovil}
                 >
                   Admin
                 </NavLink>
@@ -124,7 +104,7 @@ function Barra(): JSX.Element {
                     logout();
                     nav("/");
                   }}
-                  className="min-h-11 flex items-center justify-start border border-neutral-600 rounded-lg px-3"
+                  className={claseNavMovil}
                 >
                   Salir
                 </NavLink>
@@ -133,7 +113,7 @@ function Barra(): JSX.Element {
               <Link
                 to="/login"
                 onClick={cerrarMenu}
-                className="min-h-11 flex items-center justify-start border border-neutral-600 rounded-lg px-3"
+                className="min-h-11 flex items-center justify-start border border-white/20 text-white rounded-lg px-3"
               >
                 Ingresar
               </Link>

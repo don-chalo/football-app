@@ -1,4 +1,4 @@
-import { Badge, Card } from "./ui";
+import { Badge, Card, tonoPorEstado } from "./ui";
 
 interface PartidoRowProps {
   id: string;
@@ -32,7 +32,7 @@ export function PartidoCard(partido: PartidoRowProps) {
       <div className="text-sm text-neutral-600 flex items-center justify-end min-h-11">
         {partido.fase && <span>{partido.fase || "—"}</span>}
         <span className="p-2 h-min md:text-sm text-xs">{partido.fecha.slice(0, 10) || "—"}</span>
-        <Badge>{partido.estado}</Badge>
+        <Badge tono={tonoPorEstado(partido.estado)} pulso={partido.estado === "en_juego"}>{partido.estado}</Badge>
       </div>
     </div>
   </Card>;

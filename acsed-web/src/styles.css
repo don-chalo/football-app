@@ -1,9 +1,30 @@
 @import "tailwindcss";
 
+@theme {
+  /* Verde cancha */
+  --color-cancha-50: #f0fdf4;
+  --color-cancha-100: #dcfce7;
+  --color-cancha-600: #16a34a;
+  --color-cancha-700: #15803d;
+  --color-cancha-800: #166534;
+  --color-cancha-950: #052e16;
+
+  /* Amarillo energía (CTA, en juego) */
+  --color-energia-400: #facc15;
+  --color-energia-500: #eab308;
+
+  /* Naranja marcador (goles, eventos) */
+  --color-marcador-100: #ffedd5;
+  --color-marcador-700: #c2410c;
+
+  /* Fondo app con tinte césped */
+  --color-fondo: #e9efe9;
+}
+
 :root {
   color-scheme: light;
 }
 
 body {
-  @apply bg-neutral-300 text-neutral-800 antialiased;
+  @apply bg-fondo text-neutral-800 antialiased;
 }

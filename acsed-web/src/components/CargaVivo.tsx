@@ -4,6 +4,7 @@ import { mensajeError } from "../api/client";
 import { services } from "../api/services";
 import type { Convocatoria, Evento, TipoEvento } from "../api/types";
 import { Badge, Button, Input, Sheet, Toast } from "./ui";
+import { ChevronDownIcon, ChevronUpIcon } from "@radix-ui/react-icons";
 
 const TIPOS: Array<{ tipo: TipoEvento; txt: string }> = [
   { tipo: "gol", txt: "GOL" },
@@ -122,9 +123,9 @@ export function CargaVivo({ partidoId, convocatorias, eventos, nombreJugador, no
                     setError(null);
                     setHoja({ modo: "agregar", jugadorId: c.jugadorId, equipoId: c.equipoId });
                   }}
-                  className="min-h-13 flex flex-1 items-center justify-between gap-2 rounded-lg bg-neutral-50 border border-neutral-200 px-3 text-left font-medium active:bg-emerald-50"
+                  className="min-h-13 flex flex-1 items-center justify-between gap-2 rounded-lg bg-neutral-50 border border-neutral-200 px-3 text-left font-medium active:bg-cancha-100"
                 >
-                  <span className="min-w-0 break-words">{nombreJugador(c.jugadorId)}</span>
+                  <span className="min-w-0 wrap-break-words">{nombreJugador(c.jugadorId)}</span>
                   {textoConteos(c.jugadorId) ? (
                     <span className="shrink-0 text-sm font-normal text-stone-500">{textoConteos(c.jugadorId)}</span>
                   ) : null}
@@ -137,7 +138,7 @@ export function CargaVivo({ partidoId, convocatorias, eventos, nombreJugador, no
                       setError(null);
                       setHoja({ modo: "quitar", jugadorId: c.jugadorId });
                     }}
-                    className="min-h-11 min-w-11 shrink-0 rounded-lg bg-white border border-stone-200 px-2 text-red-700 font-bold"
+                    className="min-h-11 min-w-11 shrink-0 rounded-lg bg-neutral-50 border border-neutral-200 px-2 text-red-700 font-bold"
                   >
                     -
                   </button>
@@ -156,7 +157,10 @@ export function CargaVivo({ partidoId, convocatorias, eventos, nombreJugador, no
             className="flex min-h-11 w-full items-center justify-between font-bold"
           >
             <span>{`Cronología (${String(eventos.length)})`}</span>
-            <span aria-hidden="true">{cronoAbierta ? "-" : "+"}</span>
+            {
+              cronoAbierta ? <ChevronUpIcon className="w-5 h-5" /> : <ChevronDownIcon className="w-5 h-5" />
+            }
+            {/* <span aria-hidden="true">{cronoAbierta ? "-" : "+"}</span> */}
           </button>
         </Trigger>
         <Content>

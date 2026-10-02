@@ -2,7 +2,7 @@ import type { JSX } from "react";
 import { useParams } from "react-router-dom";
 import * as _ from "lodash";
 import { services } from "../api/services";
-import { ActorLine, Badge, Card, Empty, ErrorMsg, Loading, Title } from "../components/ui";
+import { ActorLine, Badge, Card, Empty, ErrorMsg, Loading, Title, tonoPorEstado } from "../components/ui";
 import { useMapaEquipos, useMapaJugadores } from "../hooks/useNombres";
 import { usePolling } from "../hooks/usePolling";
 
@@ -41,7 +41,7 @@ export function PartidoPage(): JSX.Element {
         <h1 className="text-lg font-bold text-neutral-800">
           {(mapaEquipos.get(data.localId) ?? "?").toUpperCase()} {data.marcador.local} - {data.marcador.visita}{" "} {(mapaEquipos.get(data.visitaId) ?? "?").toUpperCase()}
         </h1>
-        <Badge>{data.estado}</Badge>
+        <Badge tono={tonoPorEstado(data.estado)} pulso={data.estado === "en_juego"}>{data.estado}</Badge>
       </Title>
       <div>
         {data.penalesLocal !== null && data.penalesVisita !== null ? (

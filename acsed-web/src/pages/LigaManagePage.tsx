@@ -26,7 +26,7 @@ export function LigaManagePage(): JSX.Element {
       </Title>
       <Link to={`/admin/partidos/nuevo?ligaId=${id}`}>
         <Card>
-          <span className="font-bold text-emerald-800 min-h-11 flex items-center">+ Nuevo partido</span>
+          <span className="font-bold text-cancha-700 min-h-11 flex items-center">+ Nuevo partido</span>
         </Card>
       </Link>
       {partidos.data ? (
