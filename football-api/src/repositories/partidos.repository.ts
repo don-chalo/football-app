@@ -14,6 +14,10 @@ function map(d: {
   penalesLocal: number | null;
   penalesVisita: number | null;
   clasificadoId: Types.ObjectId | null;
+  inicioEn: Date | null;
+  pausaDesde: Date | null;
+  pausaAcumSeg?: number;
+  finEn: Date | null;
   createdBy?: RawCreatedBy | null;
   createdAt?: Date;
 }): Partido {
@@ -29,6 +33,10 @@ function map(d: {
     penalesLocal: d.penalesLocal,
     penalesVisita: d.penalesVisita,
     clasificadoId: d.clasificadoId ? d.clasificadoId.toHexString() : null,
+    inicioEn: d.inicioEn ?? null,
+    pausaDesde: d.pausaDesde ?? null,
+    pausaAcumSeg: d.pausaAcumSeg ?? 0,
+    finEn: d.finEn ?? null,
     ...mapAudit(d),
   };
 }
@@ -50,6 +58,10 @@ export type PartidoPatch = Partial<{
   penalesLocal: number | null;
   penalesVisita: number | null;
   clasificadoId: string | null;
+  inicioEn: Date | null;
+  pausaDesde: Date | null;
+  pausaAcumSeg: number;
+  finEn: Date | null;
 }>;
 
 export class MongoosePartidosRepo {

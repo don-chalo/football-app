@@ -13,6 +13,7 @@ import { LoginPage } from "./pages/LoginPage";
 import { PartidoFormPage } from "./pages/PartidoFormPage";
 import { PartidoManagePage } from "./pages/PartidoManagePage";
 import { PartidoPage } from "./pages/PartidoPage";
+import { SoccerBall } from "./components/icons/SoccerBall";
 
 function Barra(): JSX.Element {
   const { user, logout } = useSession();
@@ -26,7 +27,8 @@ function Barra(): JSX.Element {
   return (
     <header className="sticky top-0 bg-cancha-950 px-4 min-h-14 flex items-center justify-between">
       <Link to="/" className="font-black tracking-wide min-h-11 flex items-center text-energia-400" tool-tip="Ir a la página principal">
-        ACSED WEB
+        <span className="mr-2">ACSED WEB</span>
+        <SoccerBall />
       </Link>      
       <nav aria-label="Navegación principal" className="hidden sm:flex items-center gap-1">
         <NavLink to="/ligas" className={claseNav}>

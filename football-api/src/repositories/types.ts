@@ -53,6 +53,10 @@ export interface Partido {
   penalesLocal: number | null;
   penalesVisita: number | null;
   clasificadoId: string | null;
+  inicioEn: Date | null;
+  pausaDesde: Date | null;
+  pausaAcumSeg: number;
+  finEn: Date | null;
   createdBy: CreatedBy | null;
   createdAt: Date | null;
 }

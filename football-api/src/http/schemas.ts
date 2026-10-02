@@ -43,6 +43,7 @@ export const partidoPatchSchema = z.object({
   clasificadoId: objectId.nullable().optional(),
 });
 export const estadoSchema = z.object({ estado: z.enum(["programado", "en_juego", "finalizado"]) });
+export const pausaSchema = z.object({ pausada: z.boolean() });
 
 export const convocatoriaSchema = z.object({ jugadorId: objectId, equipoId: objectId });
 export const convocatoriaPatchSchema = z.object({ estado: z.enum(["convocado", "ausente"]) });

@@ -104,12 +104,14 @@ describe("servicios de dominio", () => {
     await s.partidos.crear({ ligaId: "l1", localId: "a", visitaId: "b", fecha: "f", fase: "fase 1" });
     await s.partidos.cambiarEstado("p1", "en_juego");
     await s.partidos.actualizarPenales("p1", { penalesLocal: 4, penalesVisita: 3, clasificadoId: "a" });
+    await s.partidos.pausa("p1", true);
     expect(llamadas).toEqual([
       { metodo: "GET", path: "/partidos?ligaId=l1" },
       { metodo: "GET", path: "/partidos/p1" },
       { metodo: "POST", path: "/partidos", body: { ligaId: "l1", localId: "a", visitaId: "b", fecha: "f", fase: "fase 1" } },
       { metodo: "PATCH", path: "/partidos/p1/estado", body: { estado: "en_juego" } },
       { metodo: "PATCH", path: "/partidos/p1", body: { penalesLocal: 4, penalesVisita: 3, clasificadoId: "a" } },
+      { metodo: "POST", path: "/partidos/p1/pausa", body: { pausada: true } },
     ]);
   });
 

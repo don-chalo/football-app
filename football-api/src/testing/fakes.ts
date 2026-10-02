@@ -139,6 +139,7 @@ export class FakePartidos extends crud<Partido>() {
       id: newId(), ligaId: data.ligaId, localId: data.localId, visitaId: data.visitaId,
       fecha: data.fecha, estado: "programado", fase: data.fase ?? "", idaDe: data.idaDe ?? null,
       penalesLocal: null, penalesVisita: null, clasificadoId: null,
+      inicioEn: null, pausaDesde: null, pausaAcumSeg: 0, finEn: null,
       createdBy: data.createdBy ?? null, createdAt: new Date(),
     };
     this.items.push(p);

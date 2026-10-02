@@ -1,21 +1,22 @@
 import { useState, type FormEvent, type JSX } from "react";
 import { useParams } from "react-router-dom";
-import { Collapsible, Content, Trigger } from "@radix-ui/react-collapsible";
 import { mensajeError } from "../api/client";
 import { services } from "../api/services";
-import type { EstadoPartido, PartidoDetalle } from "../api/types";
+import type { EstadoPartido } from "../api/types";
 import { CargaVivo } from "../components/CargaVivo";
+import { Cronometro } from "../components/Cronometro";
 import { Badge, Button, Card, Empty, ErrorMsg, Input, Loading, Title, tonoPorEstado } from "../components/ui";
+import { useCronometro } from "../hooks/useCronometro";
 import { useMapaEquipos, useMapaJugadores } from "../hooks/useNombres";
 import { usePolling } from "../hooks/usePolling";
-import { ChevronDownIcon, ChevronUpIcon } from "@radix-ui/react-icons";
+import { formatoFechaCorta } from "../utils/fecha";
 
 export function PartidoManagePage(): JSX.Element {
   const { id = "" } = useParams();
   const detalle = usePolling(() => services.partidos.detalle(id), 5_000);
   const mapaEquipos = useMapaEquipos();
   const mapaJugadores = useMapaJugadores();
-  const [open, setOpen] = useState(true);
+  const reloj = useCronometro(detalle.data ?? null);
 
   if (detalle.loading && !detalle.data) return <Loading />;
   if (detalle.error && !detalle.data) return <ErrorMsg error={detalle.error} onRetry={detalle.refresh} />;
@@ -44,49 +45,33 @@ export function PartidoManagePage(): JSX.Element {
           </span>
           <span className="font-bold">Fecha de juego:&nbsp;</span>
           <span>
-            {new Date(p.fecha).toLocaleString("es")}
+            {formatoFechaCorta(p.fecha)}
           </span>
         </p>
       </div>
         {/* <ActorLine createdBy={p.createdBy} createdAt={p.createdAt} /> */}
-      <EstadoBotones id={p.id} estado={p.estado} onCambio={detalle.refresh} />
+      <EstadoBotones id={p.id} estado={p.estado} fecha={p.fecha} onCambio={detalle.refresh} />
+
+      {p.estado === "en_juego" ? <Cronometro partido={p} onCambio={detalle.refresh} /> : null}
 
       <Card>
-        <Collapsible open={open} onOpenChange={setOpen}>
-          <Trigger asChild>
-            <div className="font-bold mb-2 flex flex-row justify-between">
-              <h2 className="font-bold mb-2">Convocados</h2>
-              {
-                open ? <ChevronUpIcon className="w-5 h-5" /> : <ChevronDownIcon className="w-5 h-5" />
-              }
-            </div>
-          </Trigger>
-          <Content>
-            <Convocatorias
-              partidoId={p.id}
-              localId={p.localId}
-              visitaId={p.visitaId}
-              lista={p.convocatorias}
-              eventos={p.eventos}
-              onCambio={detalle.refresh}
-            />
-          </Content>
-        </Collapsible>
+        <h2 className="font-bold mb-2">Convocatoria y goles</h2>
+        <CargaVivo
+          partidoId={p.id}
+          estadoPartido={p.estado}
+          localId={p.localId}
+          visitaId={p.visitaId}
+          convocatorias={p.convocatorias}
+          eventos={p.eventos}
+          minutoAuto={reloj.minutoAuto}
+          inicioEn={p.inicioEn}
+          finEn={p.finEn}
+          minutoFin={p.finEn ? reloj.minuto : null}
+          nombreJugador={(jid) => mapaJugadores.get(jid) ?? jid}
+          nombreEquipo={(eid) => mapaEquipos.get(eid) ?? eid}
+          onCambio={detalle.refresh}
+        />
       </Card>
-
-      {(p.estado === "en_juego" || p.estado === "finalizado") && (
-        <Card>
-          <h2 className="font-bold mb-2">{p.estado === "en_juego" ? "Cargar goles" : "Goles (corrección)"}</h2>
-          <CargaVivo
-            partidoId={p.id}
-            convocatorias={p.convocatorias}
-            eventos={p.eventos}
-            nombreJugador={(jid) => mapaJugadores.get(jid) ?? jid}
-            nombreEquipo={(eid) => mapaEquipos.get(eid) ?? eid}
-            onCambio={detalle.refresh}
-          />
-        </Card>
-      )}
 
       <Card>
         <h2 className="font-bold mb-2">Penales (definición)</h2>
@@ -102,8 +87,9 @@ export function PartidoManagePage(): JSX.Element {
   );
 }
 
-function EstadoBotones({ id, estado, onCambio }: { id: string; estado: string; onCambio: () => void }): JSX.Element {
+function EstadoBotones({ id, estado, fecha, onCambio }: { id: string; estado: string; fecha: string; onCambio: () => void }): JSX.Element {
   const [error, setError] = useState<unknown>(null);
+  const puedeIniciar = Date.now() >= new Date(fecha).getTime();
   async function cambiar(nuevo: EstadoPartido): Promise<void> {
     setError(null);
     try {
@@ -117,150 +103,19 @@ function EstadoBotones({ id, estado, onCambio }: { id: string; estado: string; o
     <>
       {
         (estado === "programado" || estado === "en_juego") && <Card>
-          <div className="flex gap-2">
-            {estado === "programado" ? <Button className="w-full" onClick={() => void cambiar("en_juego")}>Poner en juego</Button> : null}
+          <div className="flex flex-col gap-2">
+            {estado === "programado" ? (
+              <>
+                <Button className="w-full" disabled={!puedeIniciar} onClick={() => void cambiar("en_juego")}>Poner en juego</Button>
+                {!puedeIniciar ? <p className="text-sm text-stone-500">Disponible desde {formatoFechaCorta(fecha)}</p> : null}
+              </>
+            ) : null}
             {estado === "en_juego" ? <Button className="w-full" onClick={() => void cambiar("finalizado")}>Finalizar</Button> : null}
             {error ? <p className="text-red-700">{mensajeError(error)}</p> : null}
           </div>
         </Card>
       }
     </>
-  );
-}
-
-export function Convocatorias({ partidoId, localId, visitaId, lista, eventos, onCambio }: {
-  partidoId: string;
-  localId: string;
-  visitaId: string;
-  lista: PartidoDetalle["convocatorias"];
-  eventos: PartidoDetalle["eventos"];
-  onCambio: () => void;
-}): JSX.Element {
-  const jugadores = usePolling(() => services.jugadores.listar(), 60_000);
-  const mapaEquipos = useMapaEquipos();
-  const mapaJugadores = useMapaJugadores();
-  const [jugadorId, setJugadorId] = useState("");
-  const [equipoId, setEquipoId] = useState("");
-  const [error, setError] = useState<unknown>(null);
-  const [aviso, setAviso] = useState<string | null>(null);
-  const [confirmarId, setConfirmarId] = useState<string | null>(null);
-
-  async function agregar(e: FormEvent): Promise<void> {
-    e.preventDefault();
-    if (!jugadorId || !equipoId) return;
-    setError(null);
-    try {
-      await services.convocatorias.agregar(partidoId, { jugadorId, equipoId });
-      setJugadorId("");
-      setEquipoId("");
-      onCambio();
-    } catch (err) {
-      setError(err);
-    }
-  }
-
-  async function marcar(id: string, estado: PartidoDetalle["convocatorias"][number]["estado"]): Promise<void> {
-    try {
-      await services.convocatorias.marcar(id, estado);
-      onCambio();
-    } catch (err) {
-      setError(err);
-    }
-  }
-
-  async function quitar(c: PartidoDetalle["convocatorias"][number]): Promise<void> {
-    if (confirmarId !== c.id) {
-      setConfirmarId(c.id);
-      setAviso(null);
-      return;
-    }
-    if (eventos.some((e) => e.jugadorId === c.jugadorId)) {
-      setAviso(`No se puede quitar a ${mapaJugadores.get(c.jugadorId) ?? "?"}: tiene goles registrados, bórralos primero.`);
-      setConfirmarId(null);
-      return;
-    }
-    setConfirmarId(null);
-    setAviso(null);
-    try {
-      await services.convocatorias.quitar(c.id);
-      onCambio();
-    } catch (err) {
-      setError(err);
-    }
-  }
-
-  return (
-    <div className="flex flex-col gap-2">
-      {error ? <p className="text-red-700">{mensajeError(error)}</p> : null}
-      {aviso ? <p className="text-red-700">{aviso}</p> : null}
-      {
-        Array.from(mapaEquipos.entries()).filter(([id, _nombre]) => id === localId || id === visitaId).map(([id, nombre]) => {
-          return <div key={id} className="flex flex-col gap-1">
-            <p className="font-bold" key={id}>{nombre}</p>
-            {lista.filter((c) => c.equipoId === id).map((c) => (
-              <div key={c.id} className="flex items-center justify-between bg-neutral-50 border border-neutral-200 rounded-lg px-3 min-h-11">
-                <span className="text-sm">
-                  {mapaJugadores.get(c.jugadorId) ?? "?"}
-                  {c.estado === "ausente" ? " (ausente)" : ""}
-                </span>
-                <span className="flex gap-1">
-                  <button
-                    type="button"
-                    onClick={() => void marcar(c.id, c.estado === "ausente" ? "convocado" : "ausente")}
-                    className="min-h-11 px-2 underline text-sm"
-                  >
-                    {c.estado === "ausente" ? "Presente" : "Ausente"}
-                  </button>
-                  {confirmarId === c.id ? (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() => void quitar(c)}
-                        className="min-h-11 px-2 font-bold text-red-700 text-sm"
-                      >
-                        Confirmar
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => { setConfirmarId(null); }}
-                        className="min-h-11 px-2 text-sm"
-                      >
-                        No
-                      </button>
-                    </>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => void quitar(c)}
-                      className="min-h-11 px-2 text-red-700 text-sm"
-                    >
-                      Quitar
-                    </button>
-                  )}
-                </span>
-              </div>
-            ))}            
-          </div>;
-        })
-      }
-
-      <form onSubmit={(e) => { void agregar(e); }} className="flex gap-2">
-        <select aria-label="Jugador" className="flex-1 min-h-11 rounded-lg border px-2 bg-neutral-100" value={jugadorId} onChange={(e) => { setJugadorId(e.target.value); }}>
-          <option value="">Jugador...</option>
-          {
-            (jugadores.data ?? [])
-              .filter((j) => !lista.some((c) => c.jugadorId === j.id))
-              .map((j) => (<option key={j.id} value={j.id}>{j.nombre}</option>))
-          }
-        </select>
-        <select aria-label="Equipo" className="min-h-11 rounded-lg border px-2 bg-neutral-100" value={equipoId} onChange={(e) => { setEquipoId(e.target.value); }}>
-          <option value="">Equipo...</option>
-          <option value={localId}>{mapaEquipos.get(localId) ?? "Local"}</option>
-          <option value={visitaId}>{mapaEquipos.get(visitaId) ?? "Visita"}</option>
-        </select>        
-        <Button disabled={!jugadorId || !equipoId}>+</Button>
-      </form>
-    </div>
   );
 }
 

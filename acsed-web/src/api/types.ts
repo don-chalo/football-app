@@ -72,6 +72,10 @@ export interface PartidoDetalle {
   penalesLocal: number | null;
   penalesVisita: number | null;
   clasificadoId: string | null;
+  inicioEn: string | null;
+  pausaDesde: string | null;
+  pausaAcumSeg: number;
+  finEn: string | null;
   createdBy: CreatedBy | null;
   createdAt: string | null;
   marcador: { local: number; visita: number };

@@ -1,10 +1,4 @@
-# carga-en-vivo Specification
-
-## Purpose
-
-Carga de goles al borde de la cancha desde el celular: 2 taps por gol, con deshacer y refresco rapido.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Squad and absence marking
 The unified player list SHALL show all convocados grouped by equipo in every partido estado, including ausentes shown subdued and marked "(ausente)", and allow marking ausente/convocado from the player's sheet. Marking ausente SHALL NOT remove or block that player's existing eventos; an ausente MAY keep registered goals for manual correction.
@@ -32,27 +26,7 @@ Tapping a player SHALL open a bottom sheet with three large options (GOL, AUTOGO
 - **WHEN** an admin taps a player while the partido is `programado`
 - **THEN** the sheet offers only Ausente and Quitar, no goal types.
 
-### Requirement: Undo and send states
-After registering, the system SHALL show an undo toast and a recent-events list with per-event delete; each send SHALL show sending→ok/error states with manual retry on error (no automatic retries). The global recent-events list MAY be collapsed by default, but SHALL remain expandable. The system SHALL also offer player-scoped correction: opening correction for a selected player SHALL list only that player's eventos, each with its own delete control.
-
-#### Scenario: Undo a mis-tap
-- **WHEN** an admin taps undo within the toast window
-- **THEN** the event is deleted and the marcador updates.
-
-#### Scenario: Correct one player's evento
-- **WHEN** an admin opens correction for a player with two eventos and deletes one
-- **THEN** only the selected evento is deleted, the player's displayed totals update, and the marcador updates.
-
-#### Scenario: Removal is unavailable without eventos
-- **WHEN** a player has no gol, autogol or in-match penal eventos
-- **THEN** no active per-player removal control is offered for that player.
-
-### Requirement: Fast polling while loading
-The live-load view SHALL poll every ~5s (fixed) and refresh immediately after its own mutations.
-
-#### Scenario: Own goal appears instantly
-- **WHEN** the admin registers a goal
-- **THEN** the view refreshes without waiting for the next tick.
+## ADDED Requirements
 
 ### Requirement: Add player per equipo
 Each equipo section SHALL end with an "+ Agregar jugador" control opening a sheet that lists available jugadores (catalog excluding already-convocados for this partido); tapping a jugador SHALL add them to that equipo's convocatoria silently and close the sheet. No equipo picker is offered.
@@ -60,14 +34,3 @@ Each equipo section SHALL end with an "+ Agregar jugador" control opening a shee
 #### Scenario: Add player to one equipo
 - **WHEN** an admin taps "+ Agregar jugador" under ALFA and taps Diego
 - **THEN** Diego appears in ALFA's convocatoria without any toast or confirm.
-
-### Requirement: Automatic minute from match clock
-While the match clock is running, registering a goal from the player sheet SHALL store the clock-derived minute automatically with no manual input. While paused or in correction (`finalizado`), the manual "Minuto (opcional)" field SHALL apply.
-
-#### Scenario: Auto minute while running
-- **WHEN** an admin registers a gol with the clock running at 64'
-- **THEN** the evento is stored with minuto 64.
-
-#### Scenario: Manual minute while paused
-- **WHEN** an admin registers a gol while paused
-- **THEN** the manual minute field decides (empty allowed).

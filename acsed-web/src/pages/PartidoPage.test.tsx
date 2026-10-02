@@ -17,6 +17,10 @@ function detalle(convocatorias: PartidoDetalle["convocatorias"]): PartidoDetalle
     penalesLocal: null,
     penalesVisita: null,
     clasificadoId: null,
+    inicioEn: "2026-03-01T15:05:00Z",
+    pausaDesde: null,
+    pausaAcumSeg: 0,
+    finEn: null,
     createdBy: null,
     createdAt: null,
     marcador: { local: 0, visita: 0 },
@@ -109,6 +113,23 @@ describe("convocatoria en detalle", () => {
     renderDetalle();
     expect(await screen.findByText("Juan")).toBeInTheDocument();
     expect(screen.getByText("Sin jugadores.")).toBeInTheDocument();
+    vi.unstubAllGlobals();
+  });
+});
+
+describe("cronometro en detalle publico", () => {
+  beforeEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("fecha sin segundos e hito de inicio en cronologia", async () => {
+    vi.stubGlobal("fetch", mockFetch(detalle([])));
+    renderDetalle();
+
+    expect(await screen.findByText("Cronología")).toBeInTheDocument();
+    expect(screen.getByText(/^\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}$/)).toBeInTheDocument();
+    expect(screen.getByText(/^Inicio \d{2}:\d{2}$/)).toBeInTheDocument();
+    expect(screen.queryByText("Fin")).not.toBeInTheDocument();
     vi.unstubAllGlobals();
   });
 });

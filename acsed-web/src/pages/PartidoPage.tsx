@@ -2,9 +2,11 @@ import type { JSX } from "react";
 import { useParams } from "react-router-dom";
 import * as _ from "lodash";
 import { services } from "../api/services";
-import { ActorLine, Badge, Card, Empty, ErrorMsg, Loading, Title, tonoPorEstado } from "../components/ui";
+import { Badge, Card, Empty, ErrorMsg, Loading, Title, tonoPorEstado } from "../components/ui";
+import { minutoDePartido } from "../hooks/useCronometro";
 import { useMapaEquipos, useMapaJugadores } from "../hooks/useNombres";
 import { usePolling } from "../hooks/usePolling";
+import { formatoFechaCorta, formatoHora } from "../utils/fecha";
 
 const TIPO_TXT: Record<string, string> = { gol: "Gol", autogol: "Autogol", penal: "Penal" };
 
@@ -34,6 +36,8 @@ export function PartidoPage(): JSX.Element {
   if (!data) return <Empty texto="Partido no encontrado." />;
   const locales = data.convocatorias.filter((c) => c.equipoId === data.localId);
   const visitas = data.convocatorias.filter((c) => c.equipoId === data.visitaId);
+  const muestraFin = !!data.finEn || data.estado === "finalizado";
+  const minutoFin = data.finEn ? minutoDePartido(data, Date.now()) : null;
 
   return (
     <div className="flex flex-col gap-2">
@@ -57,7 +61,7 @@ export function PartidoPage(): JSX.Element {
           </span>
           <span className="font-bold">Fecha de juego:&nbsp;</span>
           <span>
-            {new Date(data.fecha).toLocaleString("es")}
+            {formatoFechaCorta(data.fecha)}
           </span>
         </p>
       </div>
@@ -80,7 +84,7 @@ export function PartidoPage(): JSX.Element {
                   <ul className="flex flex-col gap-1 text-sm">
                     {columna.jugadores.map((c) => (
                       <li key={c.id} className={c.estado === "ausente" ? "text-stone-400" : ""}>
-                        <span className="break-words">{mapaJugadores.get(c.jugadorId) ?? "?"}</span>
+                        <span className="wrap-break-words">{mapaJugadores.get(c.jugadorId) ?? "?"}</span>
                         {c.estado === "ausente" ? <span> (ausente)</span> : null}
                       </li>
                     ))}
@@ -109,11 +113,18 @@ export function PartidoPage(): JSX.Element {
       </Card>
       <Card className="text-neutral-800">
         <h2 className="font-bold mb-2">Cronología</h2>
-        {data.eventos.length === 0 ? (
+        {data.eventos.length === 0 && !data.inicioEn && !muestraFin ? (
           <Empty texto="Sin goles." />
         ) : (
           <ul className="flex flex-col gap-2">
-            {data.eventos.map((e) => (
+            {muestraFin ? (
+              <li className="border-t border-neutral-200 pt-2">
+                <span className="font-medium text-cancha-800">
+                  {data.finEn ? `Fin ${formatoHora(data.finEn)}${minutoFin !== null ? ` · ${String(minutoFin)}'` : ""}` : "Fin"}
+                </span>
+              </li>
+            ) : null}
+            {[...data.eventos].reverse().map((e) => (
               <li key={e.id} className="border-t border-neutral-200 pt-2">
                 <span className="font-medium">{mapaJugadores.get(e.jugadorId) ?? "?"}</span>{" "}
                 <Badge>
@@ -122,9 +133,14 @@ export function PartidoPage(): JSX.Element {
                 </Badge>{" "}
                 <span className="text-sm text-stone-500">({mapaEquipos.get(e.equipoId)})</span>
                 <br />
-                <ActorLine createdBy={e.createdBy} createdAt={e.createdAt} />
+                {/* <ActorLine createdBy={e.createdBy} createdAt={e.createdAt} /> */}
               </li>
             ))}
+            {data.inicioEn ? (
+              <li className="border-t border-neutral-200 pt-2">
+                <span className="font-medium text-cancha-800">Inicio {formatoHora(data.inicioEn)}</span>
+              </li>
+            ) : null}
           </ul>
         )}
       </Card>

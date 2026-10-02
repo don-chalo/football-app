@@ -92,7 +92,39 @@ export function createPartidosService(d: Deps) {
       } catch {
         throw unprocessable(`Transicion no permitida: ${p.estado} -> ${estado}`);
       }
-      const updated = await d.partidos.update(id, { estado });
+      const patch: Parameters<Deps["partidos"]["update"]>[1] = { estado };
+      if (estado === "en_juego") {
+        if (Date.now() < p.fecha.getTime()) throw badRequest("Aun no es la fecha del partido");
+        if (!p.inicioEn) patch.inicioEn = new Date();
+      }
+      if (estado === "finalizado") {
+        patch.finEn = new Date();
+        if (p.pausaDesde) {
+          patch.pausaAcumSeg = p.pausaAcumSeg + Math.floor((patch.finEn.getTime() - p.pausaDesde.getTime()) / 1000);
+          patch.pausaDesde = null;
+        }
+      }
+      const updated = await d.partidos.update(id, patch);
+      if (!updated) throw notFound("Partido");
+      return updated;
+    },
+
+    async pausa(id: string, pausada: boolean): Promise<Partido> {
+      const p = await d.partidos.findById(id);
+      if (!p) throw notFound("Partido");
+      if (p.estado !== "en_juego") throw unprocessable("Solo se puede pausar un partido en juego");
+      const ahora = new Date();
+      if (pausada) {
+        if (p.pausaDesde) return p;
+        const updated = await d.partidos.update(id, { pausaDesde: ahora });
+        if (!updated) throw notFound("Partido");
+        return updated;
+      }
+      if (!p.pausaDesde) return p;
+      const updated = await d.partidos.update(id, {
+        pausaDesde: null,
+        pausaAcumSeg: p.pausaAcumSeg + Math.floor((ahora.getTime() - p.pausaDesde.getTime()) / 1000),
+      });
       if (!updated) throw notFound("Partido");
       return updated;
     },

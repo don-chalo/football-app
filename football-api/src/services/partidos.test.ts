@@ -118,3 +118,48 @@ describe("partidos", () => {
     });
   });
 });
+  it("cronometro: iniciar setea inicioEn y finalizar setea finEn", async () => {
+    const { ligas, equipos, svc } = setup();
+    const liga = await (ligas as unknown as { create(d: never): Promise<{ id: string }> }).create({ nombre: "L", formato: "liga" } as never);
+    const a = await equipos.create("A");
+    const b = await equipos.create("B");
+    const p = await svc.create({ ligaId: liga.id, localId: a.id, visitaId: b.id, fecha: "2026-03-01T15:00:00Z" });
+    expect(p.inicioEn).toBeNull();
+    const iniciado = await svc.cambiarEstado(p.id, "en_juego");
+    expect(iniciado.inicioEn).toBeInstanceOf(Date);
+    const fin = await svc.cambiarEstado(p.id, "finalizado");
+    expect(fin.finEn).toBeInstanceOf(Date);
+  });
+  it("iniciar antes de fecha rechaza 400", async () => {
+    const { ligas, equipos, svc } = setup();
+    const liga = await (ligas as unknown as { create(d: never): Promise<{ id: string }> }).create({ nombre: "L", formato: "liga" } as never);
+    const a = await equipos.create("A");
+    const b = await equipos.create("B");
+    const futura = new Date(Date.now() + 3_600_000).toISOString();
+    const p = await svc.create({ ligaId: liga.id, localId: a.id, visitaId: b.id, fecha: futura });
+    await expect(svc.cambiarEstado(p.id, "en_juego")).rejects.toMatchObject({ status: 400 });
+  });
+  it("doble inicio no resetea inicioEn", async () => {
+    const { ligas, equipos, svc } = setup();
+    const liga = await (ligas as unknown as { create(d: never): Promise<{ id: string }> }).create({ nombre: "L", formato: "liga" } as never);
+    const a = await equipos.create("A");
+    const b = await equipos.create("B");
+    const p = await svc.create({ ligaId: liga.id, localId: a.id, visitaId: b.id, fecha: "2026-03-01T15:00:00Z" });
+    const primero = await svc.cambiarEstado(p.id, "en_juego");
+    await expect(svc.cambiarEstado(p.id, "en_juego")).rejects.toMatchObject({ status: 422 });
+    expect(primero.inicioEn).toBeInstanceOf(Date);
+  });
+  it("pausa y reanuda solo en juego y acumula", async () => {
+    const { ligas, equipos, svc } = setup();
+    const liga = await (ligas as unknown as { create(d: never): Promise<{ id: string }> }).create({ nombre: "L", formato: "liga" } as never);
+    const a = await equipos.create("A");
+    const b = await equipos.create("B");
+    const p = await svc.create({ ligaId: liga.id, localId: a.id, visitaId: b.id, fecha: "2026-03-01T15:00:00Z" });
+    await expect(svc.pausa(p.id, true)).rejects.toMatchObject({ status: 422 });
+    await svc.cambiarEstado(p.id, "en_juego");
+    const pausado = await svc.pausa(p.id, true);
+    expect(pausado.pausaDesde).toBeInstanceOf(Date);
+    const reanudado = await svc.pausa(p.id, false);
+    expect(reanudado.pausaDesde).toBeNull();
+    expect(reanudado.pausaAcumSeg).toBeGreaterThanOrEqual(0);
+  });

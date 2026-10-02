@@ -13,6 +13,10 @@ export interface PartidoDoc extends Document {
   penalesLocal: number | null;
   penalesVisita: number | null;
   clasificadoId: Types.ObjectId | null;
+  inicioEn: Date | null;
+  pausaDesde: Date | null;
+  pausaAcumSeg: number;
+  finEn: Date | null;
   createdBy: CreatedBy | null;
 }
 
@@ -28,6 +32,10 @@ const partidoSchema = new Schema<PartidoDoc>(
     penalesLocal: { type: Number, default: null, min: 0 },
     penalesVisita: { type: Number, default: null, min: 0 },
     clasificadoId: { type: Schema.Types.ObjectId, ref: "Equipo", default: null },
+    inicioEn: { type: Date, default: null },
+    pausaDesde: { type: Date, default: null },
+    pausaAcumSeg: { type: Number, default: 0, min: 0 },
+    finEn: { type: Date, default: null },
     createdBy: { type: createdBySchema, default: null },
   },
   { timestamps: true },

@@ -1,10 +1,4 @@
-# quitar-convocado Specification
-
-## Purpose
-
-Quitar jugadores de la convocatoria con protección contra goles huérfanos.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Remove convocado with guard
 The player's sheet SHALL offer Quitar with inline two-step confirm (Quitar → Confirmar/No); removal SHALL be blocked with a message when the player has registered events ("borra primero sus goles").

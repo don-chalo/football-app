@@ -182,8 +182,6 @@ function JugadoresTab({ ligaId }: { ligaId: string }): JSX.Element {
         return f.pp;
       case "goles":
         return f.goles;
-      case "pj2":
-        return f.pj;
       case "autogoles":
         return f.autogoles;
       case "convocados":
@@ -207,7 +205,6 @@ function JugadoresTab({ ligaId }: { ligaId: string }): JSX.Element {
             <SortTH col="pp" label="PP" orden={orden.orden} onOrdenar={orden.alternar} />
             <SortTH col="goles" label="Goles" orden={orden.orden} onOrdenar={orden.alternar} />
             <SortTH col="autogoles" label="Autogoles" orden={orden.orden} onOrdenar={orden.alternar} />
-            <SortTH col="pj2" label="PJ" orden={orden.orden} onOrdenar={orden.alternar} />
             <SortTH col="convocados" label="Convocado" orden={orden.orden} onOrdenar={orden.alternar} />
             <SortTH col="ausentes" label="Ausencias" orden={orden.orden} onOrdenar={orden.alternar} />
           </tr>
@@ -222,7 +219,6 @@ function JugadoresTab({ ligaId }: { ligaId: string }): JSX.Element {
               <td className="p-2 text-center">{f.pp}</td>
               <td className="p-2 text-center font-bold">{f.goles}</td>
               <td className="p-2 text-center">{f.autogoles}</td>
-              <td className="p-2 text-center">{f.pj}</td>
               <td className="p-2 text-center">{f.convocados}</td>
               <td className="p-2 text-center">{f.ausentes}</td>
             </tr>

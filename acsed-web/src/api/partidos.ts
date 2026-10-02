@@ -26,6 +26,7 @@ export interface PartidosService {
   crear: (input: NuevoPartido) => Promise<PartidoDetalle>;
   cambiarEstado: (id: string, estado: EstadoPartido) => Promise<PartidoBase>;
   actualizarPenales: (id: string, input: PenalesDefinicion) => Promise<PartidoBase>;
+  pausa: (id: string, pausada: boolean) => Promise<PartidoBase>;
 }
 
 export function createPartidosService(http: HttpClient): PartidosService {
@@ -35,5 +36,6 @@ export function createPartidosService(http: HttpClient): PartidosService {
     crear: (input) => http.post<PartidoDetalle>("/partidos", input),
     cambiarEstado: (id, estado) => http.patch<PartidoBase>(`/partidos/${id}/estado`, { estado }),
     actualizarPenales: (id, input) => http.patch<PartidoBase>(`/partidos/${id}`, input),
+    pausa: (id, pausada) => http.post<PartidoBase>(`/partidos/${id}/pausa`, { pausada }),
   };
 }
