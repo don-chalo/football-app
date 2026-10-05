@@ -4,6 +4,7 @@ import { services } from "../api/services";
 import type { FilaEquipo, FilaJugador } from "../api/types";
 import { Button, Card, Empty, ErrorMsg, Input, Loading, Title } from "../components/ui";
 import { SortTH } from "../components/SortTH";
+import { TablaEquipos as TablaPosiciones } from "../components/TablaEquipos";
 import { usePolling } from "../hooks/usePolling";
 import { useOrden } from "../hooks/useOrden";
 import { Tab } from "../components/Tab";
@@ -74,36 +75,13 @@ function TablaEquipos({ filas }: { filas: FilaEquipo[] }): JSX.Element {
         return f.pe;
       case "pp":
         return f.pp;
+      case "dif":
+        return f.dif;
       default:
         return f.pts;
     }
   });
-  return (
-    <table className="w-full text-sm">
-      <thead>
-        <tr className="text-stone-500">
-          <SortTH col="nombre" label="Equipo" orden={orden.orden} onOrdenar={orden.alternar} align="left" />
-          <SortTH col="pj" label="PJ" orden={orden.orden} onOrdenar={orden.alternar} />
-          <SortTH col="pg" label="PG" orden={orden.orden} onOrdenar={orden.alternar} />
-          <SortTH col="pe" label="PE" orden={orden.orden} onOrdenar={orden.alternar} />
-          <SortTH col="pp" label="PP" orden={orden.orden} onOrdenar={orden.alternar} />
-          <SortTH col="pts" label="Pts" orden={orden.orden} onOrdenar={orden.alternar} />
-        </tr>
-      </thead>
-      <tbody>
-        {orden.filas.map((f) => (
-          <tr key={f.equipoId} className="border-t border-stone-100">
-            <td className="p-2 font-medium">{f.nombre}</td>
-            <td className="p-2 text-center">{f.pj}</td>
-            <td className="p-2 text-center">{f.pg}</td>
-            <td className="p-2 text-center">{f.pe}</td>
-            <td className="p-2 text-center">{f.pp}</td>
-            <td className="p-2 text-center font-bold">{f.pts}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
+  return <TablaPosiciones filas={orden.filas} orden={orden} nombreDe={(f) => f.nombre} />;
 }
 
 function JugadoresGlobal(): JSX.Element {
@@ -115,7 +93,7 @@ function JugadoresGlobal(): JSX.Element {
     15_000,
   );
   return (
-    <Card>
+    <Card className="overflow-x-auto">
       <FiltrosFechas desde={desde} hasta={hasta} setDesde={setDesde} setHasta={setHasta} onFiltrar={refresh} />
       {loading && !data ? <Loading /> : null}
       {error && !data ? <ErrorMsg error={error} onRetry={refresh} /> : null}
@@ -239,10 +217,16 @@ function FiltrosFechas({
   onFiltrar: () => void;
 }): JSX.Element {
   return (
-    <div className="flex gap-2 mb-3">
-      <Input aria-label="Desde" type="date" value={desde} onChange={(e) => { setDesde(e.target.value); }} />
-      <Input aria-label="Hasta" type="date" value={hasta} onChange={(e) => { setHasta(e.target.value); }} />
-      <Button variant="ghost" onClick={onFiltrar}>
+    <div className="flex flex-col md:flex-row gap-2 mb-3">
+      <div className="flex flex-1 gap-2">
+        <div className="flex-1 min-w-0">
+          <Input aria-label="Desde" type="date" value={desde} onChange={(e) => { setDesde(e.target.value); }} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <Input aria-label="Hasta" type="date" value={hasta} onChange={(e) => { setHasta(e.target.value); }} />
+        </div>
+      </div>
+      <Button onClick={onFiltrar} className="w-full md:w-auto">
         Filtrar
       </Button>
     </div>

@@ -8,17 +8,19 @@ export function SortTH({
   orden,
   onOrdenar,
   align = "center",
+  className = "",
 }: {
   col: OrdenKey;
   label: string;
   orden: Orden;
   onOrdenar: (col: OrdenKey) => void;
   align?: "left" | "center";
+  className?: string;
 }): JSX.Element {
   const activo = orden.key === col;
   const marca = activo ? (orden.dir === "asc" ? " ▲" : " ▼") : "";
   return (
-    <th className={`${align === "left" ? "text-left" : ""} p-1`}>
+    <th className={`${align === "left" ? "text-left" : ""} p-1 ${className}`}>
       <button
         type="button"
         onClick={() => {

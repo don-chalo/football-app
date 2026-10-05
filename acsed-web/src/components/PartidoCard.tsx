@@ -15,25 +15,29 @@ interface PartidoRowProps {
 }
 
 export function PartidoCard(partido: PartidoRowProps) {
+  const secundaria = [
+    partido.fase || null,
+    partido.fecha.slice(0, 10) || null,
+    partido.penalesLocal !== null && partido.penalesVisita !== null
+      ? `Penales ${String(partido.penalesLocal)}-${String(partido.penalesVisita)}`
+      : null,
+  ].filter((x) => x !== null).join(" · ");
   return <Card className={partido.estado === "suspendido" ? "opacity-60" : ""}>
-    <div className="grid grid-cols-2 gap-2">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-        <div className="flex align-middle">
-          <span className="min-w-0 font-medium wrap-break-words pt-2">
-            {`${partido.mapaEquipos.get(partido.localId) ?? "?"} ${String(partido.marcador.local)} - ${String(partido.marcador.visita)} ${partido.mapaEquipos.get(partido.visitaId) ?? "?"}`}
-          </span>
+    <div className="flex items-start justify-between gap-2 min-h-11">
+      <div className="min-w-0 flex-1">
+        <div className="flex items-baseline justify-between gap-2">
+          <span className="min-w-0 truncate font-bold">{partido.mapaEquipos.get(partido.localId) ?? "?"}</span>
+          <span className="text-2xl font-black tabular-nums">{partido.marcador.local}</span>
         </div>
-        <div className="flex align-middle">
-          <span className="min-w-0 font-normal wrap-break-words pt-2">
-            {partido.penalesLocal !== null && partido.penalesVisita !== null ? ` (Penales: ${String(partido.penalesLocal)}-${String(partido.penalesVisita)})` : ""}
-          </span>
+        <div className="flex items-baseline justify-between gap-2">
+          <span className="min-w-0 truncate font-bold">{partido.mapaEquipos.get(partido.visitaId) ?? "?"}</span>
+          <span className="text-2xl font-black tabular-nums">{partido.marcador.visita}</span>
         </div>
+        {secundaria ? (
+          <p className="text-xs text-neutral-600 mt-1">{secundaria}</p>
+        ) : null}
       </div>
-      <div className="text-sm text-neutral-600 flex items-center justify-end min-h-11">
-        {partido.fase && <span>{partido.fase || "—"}</span>}
-        <span className="p-2 h-min md:text-sm text-xs">{partido.fecha.slice(0, 10) || "—"}</span>
-        <Badge tono={tonoPorEstado(partido.estado)} pulso={partido.estado === "en_juego"}>{partido.estado}</Badge>
-      </div>
+      <Badge tono={tonoPorEstado(partido.estado)} pulso={partido.estado === "en_juego"}>{partido.estado}</Badge>
     </div>
   </Card>;
 }

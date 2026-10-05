@@ -3,13 +3,15 @@ import { Link, useParams } from "react-router-dom";
 import { services } from "../api/services";
 import type { FilaEquipo } from "../api/types";
 import type { PartidoListado } from "../api/partidos";
-import { Badge, Card, Empty, ErrorMsg, Loading, Title } from "../components/ui";
+import { Badge, Card, Empty, ErrorMsg, Loading, SkeletonFilas, Title } from "../components/ui";
 import { SortTH } from "../components/SortTH";
+import { useSession } from "../auth/Session";
 import { useMapaEquipos } from "../hooks/useNombres";
 import { porFechaDesc } from "../hooks/orden";
 import { useOrden } from "../hooks/useOrden";
 import { usePolling } from "../hooks/usePolling";
 import { PartidoCard } from "../components/PartidoCard";
+import { TablaEquipos } from "../components/TablaEquipos";
 import * as Tabs from "@radix-ui/react-tabs";
 import { Tab } from "../components/Tab";
 
@@ -56,12 +58,51 @@ export function LigaDetailPage(): JSX.Element {
 function PartidosTab({ ligaId }: { ligaId: string }): JSX.Element {
   const { data, error, loading, refresh } = usePolling(() => services.partidos.porLiga(ligaId), 15_000);
   const mapaEquipos = useMapaEquipos();
-  if (loading && !data) return <Loading />;
+  const { user } = useSession();
+  const [filtro, setFiltro] = useState<"todos" | "en_juego" | "programado" | "finalizado" | "suspendido">("todos");
+  if (loading && !data) return <SkeletonFilas />;
   if (error && !data) return <ErrorMsg error={error} onRetry={refresh} />;
-  if (!data || data.length === 0) return <Empty texto="Sin partidos." />;
+  if (!data || data.length === 0) {
+    return (
+      <div className="flex flex-col gap-2">
+        <Empty texto="Sin partidos." />
+        {user ? (
+          <Link to={`/admin/ligas/${ligaId}`}>
+            <Card>
+              <span className="font-bold text-cancha-700 min-h-11 flex items-center">+ Nuevo partido</span>
+            </Card>
+          </Link>
+        ) : null}
+      </div>
+    );
+  }
+  const filtrados = porFechaDesc(data.filter((p) => filtro === "todos" || p.estado === filtro));
+  const cuenta = (valor: typeof filtro): number =>
+    valor === "todos" ? data.length : data.filter((p) => p.estado === valor).length;
+  const chips: Array<{ valor: typeof filtro; txt: string }> = [
+    { valor: "todos", txt: "Todos" },
+    { valor: "en_juego", txt: "En juego" },
+    { valor: "programado", txt: "Programados" },
+    { valor: "finalizado", txt: "Finalizados" },
+    { valor: "suspendido", txt: "Suspendidos" },
+  ];
   return (
     <div className="flex flex-col gap-2">
-      {porFechaDesc(data).map((p) => (
+      <div className="flex flex-wrap gap-1" role="group" aria-label="Filtrar por estado">
+        {chips.map((c) => (
+          <button
+            key={c.valor}
+            type="button"
+            aria-pressed={filtro === c.valor}
+            onClick={() => { setFiltro(c.valor); }}
+            className={`min-h-7 px-3 rounded-full text-sm font-medium ${filtro === c.valor ? "bg-cancha-600 text-white" : "bg-cancha-950/10 text-cancha-950"}`}
+          >
+            {c.txt} {cuenta(c.valor)}
+          </button>
+        ))}
+      </div>
+      {filtrados.length === 0 ? <Empty texto="Sin partidos en este estado." /> : null}
+      {filtrados.map((p) => (
         <Link key={p.id} to={`/partidos/${p.id}`}>
           <PartidoCard {...p} mapaEquipos={mapaEquipos} />
         </Link>
@@ -92,6 +133,8 @@ function TablaTab({ ligaId, nombres }: { ligaId: string; nombres: Map<string, st
         return f.gf;
       case "gc":
         return f.gc;
+      case "dif":
+        return f.dif;
       default:
         return f.pts;
     }
@@ -101,34 +144,7 @@ function TablaTab({ ligaId, nombres }: { ligaId: string; nombres: Map<string, st
   if (!data || data.length === 0) return <Empty texto="Sin datos." />;
   return (
     <Card className="overflow-x-auto p-2">
-      <table className="w-full text-sm text-neutral-800">
-        <thead>
-          <tr>
-            <SortTH col="nombre" label="Equipo" orden={orden.orden} onOrdenar={orden.alternar} align="left" />
-            <SortTH col="pj" label="PJ" orden={orden.orden} onOrdenar={orden.alternar} />
-            <SortTH col="pg" label="PG" orden={orden.orden} onOrdenar={orden.alternar} />
-            <SortTH col="pe" label="PE" orden={orden.orden} onOrdenar={orden.alternar} />
-            <SortTH col="pp" label="PP" orden={orden.orden} onOrdenar={orden.alternar} />
-            <SortTH col="gf" label="GF" orden={orden.orden} onOrdenar={orden.alternar} />
-            <SortTH col="gc" label="GC" orden={orden.orden} onOrdenar={orden.alternar} />
-            <SortTH col="pts" label="Pts" orden={orden.orden} onOrdenar={orden.alternar} />
-          </tr>
-        </thead>
-        <tbody>
-          {orden.filas.map((f) => (
-            <tr key={f.equipoId} className="border-t border-stone-100">
-              <td className="p-2 font-medium">{f.nombre || nombres.get(f.equipoId)}</td>
-              <td className="p-2 text-center">{f.pj}</td>
-              <td className="p-2 text-center">{f.pg}</td>
-              <td className="p-2 text-center">{f.pe}</td>
-              <td className="p-2 text-center">{f.pp}</td>
-              <td className="p-2 text-center">{f.gf}</td>
-              <td className="p-2 text-center">{f.gc}</td>
-              <td className="p-2 text-center font-bold">{f.pts}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <TablaEquipos filas={orden.filas} orden={orden} nombreDe={nombreDe} />
     </Card>
   );
 }
