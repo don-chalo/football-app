@@ -117,3 +117,38 @@ describe("resultado en listados", () => {
     vi.unstubAllGlobals();
   });
 });
+
+describe("partido suspendido", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    vi.unstubAllGlobals();
+  });
+
+  it("lista atenuada con badge neutro", async () => {
+    const fetchMock = vi.fn(async (url: unknown): Promise<Response> => {
+      const u = String(url);
+      if (u.endsWith("/ligas/l1")) {
+        return new Response(JSON.stringify({ id: "l1", nombre: "Apertura", formato: "liga", idaVuelta: false, createdBy: null, createdAt: null }), { status: 200 });
+      }
+      if (u.includes("/partidos?ligaId=l1")) {
+        return new Response(JSON.stringify([{ ...partido, estado: "suspendido" }]), { status: 200 });
+      }
+      if (u.endsWith("/equipos")) {
+        return new Response(JSON.stringify([{ id: "e1", nombre: "Alfa" }, { id: "e2", nombre: "Beta" }]), { status: 200 });
+      }
+      return new Response("[]", { status: 200 });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    render(
+      <MemoryRouter initialEntries={["/ligas/l1"]}>
+        <Routes>
+          <Route path="/ligas/:id" element={<LigaDetailPage />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText("suspendido")).toBeInTheDocument();
+    expect(screen.getByText("Alfa 2 - 1 Beta").closest(".opacity-60")).not.toBeNull();
+    vi.unstubAllGlobals();
+  });
+});

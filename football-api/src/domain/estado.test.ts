@@ -6,6 +6,13 @@ describe("maquina de estados del partido", () => {
     expect(canTransition("programado", "en_juego")).toBe(true);
     expect(canTransition("en_juego", "finalizado")).toBe(true);
   });
+  it("permite programado -> suspendido y suspendido es terminal", () => {
+    expect(canTransition("programado", "suspendido")).toBe(true);
+    expect(canTransition("suspendido", "programado")).toBe(false);
+    expect(canTransition("suspendido", "en_juego")).toBe(false);
+    expect(canTransition("suspendido", "finalizado")).toBe(false);
+    expect(canTransition("en_juego", "suspendido")).toBe(false);
+  });
   it("rechaza volver a programado desde cualquier estado", () => {
     expect(canTransition("en_juego", "programado")).toBe(false);
     expect(canTransition("finalizado", "programado")).toBe(false);

@@ -89,11 +89,13 @@ export function PartidoManagePage(): JSX.Element {
 
 function EstadoBotones({ id, estado, fecha, onCambio }: { id: string; estado: string; fecha: string; onCambio: () => void }): JSX.Element {
   const [error, setError] = useState<unknown>(null);
+  const [confirmaSusp, setConfirmaSusp] = useState(false);
   const puedeIniciar = Date.now() >= new Date(fecha).getTime();
   async function cambiar(nuevo: EstadoPartido): Promise<void> {
     setError(null);
     try {
       await services.partidos.cambiarEstado(id, nuevo);
+      setConfirmaSusp(false);
       onCambio();
     } catch (err) {
       setError(err);
@@ -108,6 +110,32 @@ function EstadoBotones({ id, estado, fecha, onCambio }: { id: string; estado: st
               <>
                 <Button className="w-full" disabled={!puedeIniciar} onClick={() => void cambiar("en_juego")}>Poner en juego</Button>
                 {!puedeIniciar ? <p className="text-sm text-stone-500">Disponible desde {formatoFechaCorta(fecha)}</p> : null}
+                {confirmaSusp ? (
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => void cambiar("suspendido")}
+                      className="min-h-11 flex-1 rounded-lg bg-red-700 px-2 font-bold text-white text-sm"
+                    >
+                      Confirmar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setConfirmaSusp(false); }}
+                      className="min-h-11 flex-1 rounded-lg border border-neutral-300 px-2 text-sm"
+                    >
+                      No
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => { setConfirmaSusp(true); }}
+                    className="min-h-11 w-full rounded-lg border border-neutral-300 px-2 text-red-700 text-sm"
+                  >
+                    Suspender
+                  </button>
+                )}
               </>
             ) : null}
             {estado === "en_juego" ? <Button className="w-full" onClick={() => void cambiar("finalizado")}>Finalizar</Button> : null}

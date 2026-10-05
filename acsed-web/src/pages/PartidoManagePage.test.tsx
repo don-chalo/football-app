@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -31,7 +31,7 @@ const detalle: PartidoDetalle = {
 };
 
 function mockFetch() {
-  return vi.fn(async (url: unknown): Promise<Response> => {
+  return vi.fn(async (url: unknown, init?: RequestInit): Promise<Response> => {
     const u = String(url);
     if (u.endsWith("/partidos/p1")) return new Response(JSON.stringify(detalle), { status: 200 });
     if (u.endsWith("/equipos")) {
@@ -154,6 +154,32 @@ describe("cronometro en gestion", () => {
     const post = fetchMock.mock.calls.find(([u, i]) => String(u).endsWith("/pausa") && (i as RequestInit).method === "POST");
     expect(post).toBeDefined();
     expect(JSON.parse(((post as unknown[])[1] as RequestInit).body as string) as unknown).toMatchObject({ pausada: true });
+    vi.unstubAllGlobals();
+  });
+});
+
+describe("suspender partido", () => {
+  beforeEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("suspender con confirmacion hace PATCH suspendido", async () => {
+    const user = userEvent.setup();
+    const fetchMock = mockFetch();
+    vi.stubGlobal("fetch", fetchMock);
+    renderPage();
+
+    await user.click(await screen.findByText("Suspender"));
+    await user.click(screen.getByText("Confirmar"));
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        expect.stringContaining("/partidos/p1/estado"),
+        expect.objectContaining({ method: "PATCH" }),
+      );
+    });
+    const [, init] = fetchMock.mock.calls.find(([, i]) => (i as RequestInit | undefined)?.method === "PATCH") as unknown as [string, RequestInit];
+    expect(JSON.parse(init.body as string) as unknown).toMatchObject({ estado: "suspendido" });
     vi.unstubAllGlobals();
   });
 });

@@ -268,7 +268,7 @@ describe("CargaVivo lista unificada", () => {
     });
   }
 
-  function renderUni(estado: "programado" | "en_juego" | "finalizado" = "en_juego", onCambio: () => void = vi.fn()) {
+  function renderUni(estado: "programado" | "en_juego" | "finalizado" | "suspendido" = "en_juego", onCambio: () => void = vi.fn()) {
     return render(
       <CargaVivo
         partidoId="p"
@@ -467,6 +467,38 @@ describe("CargaVivo minuto automatico", () => {
 
     expect(await screen.findByText(/^Inicio \d{2}:\d{2}$/)).toBeInTheDocument();
     expect(screen.getByText(/^Fin \d{2}:\d{2} · 94'$/)).toBeInTheDocument();
+    vi.unstubAllGlobals();
+  });
+});
+
+describe("CargaVivo suspendido", () => {
+  it("lista visible sin acciones", async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal("fetch", mockDetalle());
+    render(
+      <CargaVivo
+        partidoId="p"
+        estadoPartido="suspendido"
+        localId="e1"
+        visitaId="e2"
+        minutoAuto={null}
+        inicioEn={null}
+        finEn={null}
+        minutoFin={null}
+        convocatorias={conv}
+        eventos={[]}
+        nombreJugador={() => "Juan"}
+        nombreEquipo={() => "Los Pibes"}
+        onCambio={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText("Juan")).toBeInTheDocument();
+    expect(screen.queryByText("+ Agregar jugador")).not.toBeInTheDocument();
+    const fila = screen.getByText("Juan").closest("button");
+    expect(fila).toBeDisabled();
+    await user.click(fila as HTMLElement);
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     vi.unstubAllGlobals();
   });
 });

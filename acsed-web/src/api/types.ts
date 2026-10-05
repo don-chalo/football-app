@@ -5,7 +5,7 @@ export interface CreatedBy {
 
 export type Role = "admin_partidos" | "admin_usuarios";
 export type Formato = "liga" | "copa";
-export type EstadoPartido = "programado" | "en_juego" | "finalizado";
+export type EstadoPartido = "programado" | "en_juego" | "finalizado" | "suspendido";
 export type TipoEvento = "gol" | "autogol" | "penal";
 
 export interface PublicUser {

@@ -26,7 +26,7 @@ async function validarRegistro(
 ): Promise<void> {
   const p = await d.partidos.findById(partidoId);
   if (!p) throw notFound("Partido");
-  if (p.estado === "programado") throw unprocessable("El partido aun no esta en juego");
+  if (p.estado !== "en_juego" && p.estado !== "finalizado") throw unprocessable("El partido no esta en juego");
   if (equipoId !== p.localId && equipoId !== p.visitaId) {
     throw unprocessable("El equipo debe ser local o visita del partido");
   }

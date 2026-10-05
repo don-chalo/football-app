@@ -1,5 +1,5 @@
-export type EstadoPartido = "programado" | "en_juego" | "finalizado";
-export const ESTADOS: EstadoPartido[] = ["programado", "en_juego", "finalizado"];
+export type EstadoPartido = "programado" | "en_juego" | "finalizado" | "suspendido";
+export const ESTADOS: EstadoPartido[] = ["programado", "en_juego", "finalizado", "suspendido"];
 
 export type TipoEvento = "gol" | "autogol" | "penal";
 export const TIPOS_EVENTO: TipoEvento[] = ["gol", "autogol", "penal"];

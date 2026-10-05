@@ -15,7 +15,7 @@ interface PartidoRowProps {
 }
 
 export function PartidoCard(partido: PartidoRowProps) {
-  return <Card>
+  return <Card className={partido.estado === "suspendido" ? "opacity-60" : ""}>
     <div className="grid grid-cols-2 gap-2">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
         <div className="flex align-middle">

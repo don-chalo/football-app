@@ -182,7 +182,7 @@ export function buildRouter(s: Services, deps: RouterDeps): Router {
 
   // ---- partidos (con scope por liga) ----
   r.get("/partidos", asyncHandler(async (req, res) => {
-    const q = z.object({ ligaId: z.string().optional(), estado: z.enum(["programado", "en_juego", "finalizado"]).optional() }).parse(req.query);
+    const q = z.object({ ligaId: z.string().optional(), estado: z.enum(["programado", "en_juego", "finalizado", "suspendido"]).optional() }).parse(req.query);
     res.json(await s.partidos.list({
       ligaId: q.ligaId ? parseId(q.ligaId) : undefined,
       estado: q.estado,

@@ -54,6 +54,7 @@ export function CargaVivo({ partidoId, estadoPartido, localId, visitaId, convoca
 
   const equipos = [localId, visitaId];
   const ofreceGoles = estadoPartido === "en_juego" || estadoPartido === "finalizado";
+  const sinAcciones = estadoPartido === "suspendido";
 
   const conteos = useMemo(() => {
     const mapa = new Map<string, { goles: number; autogoles: number; penales: number }>();
@@ -198,11 +199,12 @@ export function CargaVivo({ partidoId, estadoPartido, localId, visitaId, convoca
                   <div key={c.id} className="flex items-center gap-2">
                     <button
                       type="button"
+                      disabled={sinAcciones}
                       onClick={() => {
                         setError(null);
                         setHoja({ modo: "agregar", convocatoriaId: c.id, jugadorId: c.jugadorId, equipoId: c.equipoId, convocado: !ausente });
                       }}
-                      className={`min-h-13 flex flex-1 items-center justify-between gap-2 rounded-lg bg-neutral-50 border border-neutral-200 px-3 text-left font-medium active:bg-cancha-100${ausente ? " opacity-60" : ""}`}
+                      className={`min-h-13 flex flex-1 items-center justify-between gap-2 rounded-lg bg-neutral-50 border border-neutral-200 px-3 text-left font-medium active:bg-cancha-100${ausente ? " opacity-60" : ""} disabled:opacity-60`}
                     >
                       <span className="min-w-0 wrap-break-words">
                         <span>{nombreJugador(c.jugadorId)}</span>
@@ -212,7 +214,7 @@ export function CargaVivo({ partidoId, estadoPartido, localId, visitaId, convoca
                         <span className="shrink-0 text-sm font-normal text-stone-500">{textoConteos(c.jugadorId)}</span>
                       ) : null}
                     </button>
-                    {tieneEventos(c.jugadorId) ? (
+                    {tieneEventos(c.jugadorId) && !sinAcciones ? (
                       <button
                         type="button"
                         aria-label={`Quitar gol de ${nombreJugador(c.jugadorId)}`}
@@ -228,16 +230,18 @@ export function CargaVivo({ partidoId, estadoPartido, localId, visitaId, convoca
                   </div>
                 );
               })}
-              <button
-                type="button"
-                onClick={() => {
-                  setError(null);
-                  setHoja({ modo: "agregar-jugador", equipoId });
-                }}
-                className="min-h-11 flex items-center justify-center gap-2 rounded-lg border border-dashed border-cancha-600/40 px-3 text-cancha-700 font-medium"
-              >
-                + Agregar jugador
-              </button>
+              {!sinAcciones ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setError(null);
+                    setHoja({ modo: "agregar-jugador", equipoId });
+                  }}
+                  className="min-h-11 flex items-center justify-center gap-2 rounded-lg border border-dashed border-cancha-600/40 px-3 text-cancha-700 font-medium"
+                >
+                  + Agregar jugador
+                </button>
+              ) : null}
             </div>
           </div>
         );

@@ -54,4 +54,18 @@ describe("convocatorias y eventos", () => {
     const fix = await esvc.registrar(p.id, { jugadorId: k.id, equipoId: b.id, tipo: "autogol" });
     expect(fix.tipo).toBe("autogol");
   });
+  it("gol en suspendido 422 y suspendido es terminal", async () => {
+    const { ligas, equipos, jugadores, psvc, csvc, esvc } = setup();
+    const liga = await ligas.create({ nombre: "L", formato: "liga" });
+    const a = await equipos.create("A");
+    const b = await equipos.create("B");
+    const j = await jugadores.create("Juan");
+    const p = await psvc.create({ ligaId: liga.id, localId: a.id, visitaId: b.id, fecha: "2026-03-01T15:00:00Z" });
+    await csvc.convocar(p.id, j.id, a.id);
+    const susp = await psvc.cambiarEstado(p.id, "suspendido");
+    expect(susp.estado).toBe("suspendido");
+    await expect(esvc.registrar(p.id, { jugadorId: j.id, equipoId: a.id, tipo: "gol" })).rejects.toMatchObject({ status: 422 });
+    await expect(psvc.cambiarEstado(p.id, "programado")).rejects.toMatchObject({ status: 422 });
+    await expect(psvc.cambiarEstado(p.id, "en_juego")).rejects.toMatchObject({ status: 422 });
+  });
 });
