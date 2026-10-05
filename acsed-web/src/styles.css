@@ -28,3 +28,8 @@
 body {
   @apply bg-fondo text-neutral-800 antialiased;
 }
+
+:focus-visible {
+  outline: 2px solid var(--color-cancha-600);
+  outline-offset: 2px;
+}

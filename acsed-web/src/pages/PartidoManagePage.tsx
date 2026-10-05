@@ -5,8 +5,8 @@ import { services } from "../api/services";
 import type { EstadoPartido } from "../api/types";
 import { CargaVivo } from "../components/CargaVivo";
 import { Cronometro } from "../components/Cronometro";
-import { Badge, Button, Card, Empty, ErrorMsg, Input, Loading, Title, tonoPorEstado } from "../components/ui";
-import { useCronometro } from "../hooks/useCronometro";
+import { Badge, Button, Card, Empty, ErrorMsg, Input, SkeletonFilas, Title, tonoPorEstado } from "../components/ui";
+import { minutoDePartido } from "../hooks/useCronometro";
 import { useMapaEquipos, useMapaJugadores } from "../hooks/useNombres";
 import { usePolling } from "../hooks/usePolling";
 import { formatoFechaCorta } from "../utils/fecha";
@@ -16,9 +16,8 @@ export function PartidoManagePage(): JSX.Element {
   const detalle = usePolling(() => services.partidos.detalle(id), 5_000);
   const mapaEquipos = useMapaEquipos();
   const mapaJugadores = useMapaJugadores();
-  const reloj = useCronometro(detalle.data ?? null);
 
-  if (detalle.loading && !detalle.data) return <Loading />;
+  if (detalle.loading && !detalle.data) return <SkeletonFilas />;
   if (detalle.error && !detalle.data) return <ErrorMsg error={detalle.error} onRetry={detalle.refresh} />;
   if (!detalle.data) return <Empty texto="Partido no encontrado." />;
   const p = detalle.data;
@@ -63,10 +62,10 @@ export function PartidoManagePage(): JSX.Element {
           visitaId={p.visitaId}
           convocatorias={p.convocatorias}
           eventos={p.eventos}
-          minutoAuto={reloj.minutoAuto}
+          minutoAuto={p.estado === "en_juego" && !p.pausaDesde ? minutoDePartido(p, Date.now()) : null}
           inicioEn={p.inicioEn}
           finEn={p.finEn}
-          minutoFin={p.finEn ? reloj.minuto : null}
+          minutoFin={p.finEn ? minutoDePartido(p, Date.now()) : null}
           nombreJugador={(jid) => mapaJugadores.get(jid) ?? jid}
           nombreEquipo={(eid) => mapaEquipos.get(eid) ?? eid}
           onCambio={detalle.refresh}
@@ -90,12 +89,14 @@ export function PartidoManagePage(): JSX.Element {
 function EstadoBotones({ id, estado, fecha, onCambio }: { id: string; estado: string; fecha: string; onCambio: () => void }): JSX.Element {
   const [error, setError] = useState<unknown>(null);
   const [confirmaSusp, setConfirmaSusp] = useState(false);
+  const [confirmaFin, setConfirmaFin] = useState(false);
   const puedeIniciar = Date.now() >= new Date(fecha).getTime();
   async function cambiar(nuevo: EstadoPartido): Promise<void> {
     setError(null);
     try {
       await services.partidos.cambiarEstado(id, nuevo);
       setConfirmaSusp(false);
+      setConfirmaFin(false);
       onCambio();
     } catch (err) {
       setError(err);
@@ -138,7 +139,28 @@ function EstadoBotones({ id, estado, fecha, onCambio }: { id: string; estado: st
                 )}
               </>
             ) : null}
-            {estado === "en_juego" ? <Button className="w-full" onClick={() => void cambiar("finalizado")}>Finalizar</Button> : null}
+            {estado === "en_juego" ? (
+              confirmaFin ? (
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => void cambiar("finalizado")}
+                    className="min-h-11 flex-1 rounded-lg bg-red-700 px-2 font-bold text-white text-sm"
+                  >
+                    Confirmar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setConfirmaFin(false); }}
+                    className="min-h-11 flex-1 rounded-lg border border-neutral-300 px-2 text-sm"
+                  >
+                    No
+                  </button>
+                </div>
+              ) : (
+                <Button className="w-full" onClick={() => { setConfirmaFin(true); }}>Finalizar</Button>
+              )
+            ) : null}
             {error ? <p className="text-red-700">{mensajeError(error)}</p> : null}
           </div>
         </Card>

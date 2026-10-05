@@ -14,6 +14,7 @@ import { PartidoFormPage } from "./pages/PartidoFormPage";
 import { PartidoManagePage } from "./pages/PartidoManagePage";
 import { PartidoPage } from "./pages/PartidoPage";
 import { SoccerBall } from "./components/icons/SoccerBall";
+import { HamburgerMenuIcon } from "@radix-ui/react-icons";
 
 function Barra(): JSX.Element {
   const { user, logout } = useSession();
@@ -69,7 +70,7 @@ function Barra(): JSX.Element {
           onClick={() => { setMenuAbierto(!menuAbierto); }}
           className="min-h-11 min-w-11 flex items-center justify-center border border-white/20 text-white rounded-lg px-3"
         >
-          <span aria-hidden="true">{menuAbierto ? "X" : "Menu"}</span>
+          <span aria-hidden="true">{menuAbierto ? "X" : <HamburgerMenuIcon />}</span>
         </button>
 
         {menuAbierto ? (

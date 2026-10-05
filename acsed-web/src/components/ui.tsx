@@ -63,6 +63,16 @@ export function Loading({ texto = "Cargando..." }: { texto?: string }): JSX.Elem
   return <p className="py-8 text-center text-cancha-950/60">{texto}</p>;
 }
 
+export function SkeletonFilas({ filas = 3 }: { filas?: number }): JSX.Element {
+  return (
+    <div className="flex flex-col gap-2" aria-label="Cargando" role="status">
+      {Array.from({ length: filas }, (_, i) => (
+        <div key={i} className="rounded-xl bg-cancha-950/10 animate-pulse min-h-14" />
+      ))}
+    </div>
+  );
+}
+
 export function ErrorMsg({ error, onRetry }: { error: unknown; onRetry?: () => void }): JSX.Element {
   return (
     <div className="py-4 text-center">

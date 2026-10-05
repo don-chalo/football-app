@@ -183,3 +183,46 @@ describe("suspender partido", () => {
     vi.unstubAllGlobals();
   });
 });
+
+describe("finalizar con confirmacion", () => {
+  beforeEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("pide confirmar antes de finalizar", async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi.fn(async (url: unknown, init?: RequestInit): Promise<Response> => {
+      const u = String(url);
+      if (u.endsWith("/partidos/p1")) {
+        return new Response(JSON.stringify({ ...detalle, estado: "en_juego", inicioEn: new Date().toISOString() }), { status: 200 });
+      }
+      if (u.endsWith("/equipos")) {
+        return new Response(JSON.stringify([{ id: "e1", nombre: "Alfa" }, { id: "e2", nombre: "Beta" }]), { status: 200 });
+      }
+      if (u.endsWith("/jugadores")) {
+        return new Response(JSON.stringify([{ id: "j1", nombre: "Juan" }]), { status: 200 });
+      }
+      return new Response(JSON.stringify({ id: "p1" }), { status: 200 });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    renderPage();
+
+    await user.click(await screen.findByText("Finalizar"));
+    expect(screen.getByText("Confirmar")).toBeInTheDocument();
+    expect(fetchMock).not.toHaveBeenCalledWith(
+      expect.stringContaining("/partidos/p1/estado"),
+      expect.objectContaining({ method: "PATCH" }),
+    );
+
+    await user.click(screen.getByText("Confirmar"));
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        expect.stringContaining("/partidos/p1/estado"),
+        expect.objectContaining({ method: "PATCH" }),
+      );
+    });
+    const [, init] = fetchMock.mock.calls.find(([, i]) => (i as RequestInit | undefined)?.method === "PATCH") as unknown as [string, RequestInit];
+    expect(JSON.parse(init.body as string) as unknown).toMatchObject({ estado: "finalizado" });
+    vi.unstubAllGlobals();
+  });
+});
