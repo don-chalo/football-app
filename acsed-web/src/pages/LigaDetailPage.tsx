@@ -106,9 +106,9 @@ function TablaTab({ ligaId, nombres }: { ligaId: string; nombres: Map<string, st
           <tr>
             <SortTH col="nombre" label="Equipo" orden={orden.orden} onOrdenar={orden.alternar} align="left" />
             <SortTH col="pj" label="PJ" orden={orden.orden} onOrdenar={orden.alternar} />
-            <SortTH col="pg" label="G" orden={orden.orden} onOrdenar={orden.alternar} />
-            <SortTH col="pe" label="E" orden={orden.orden} onOrdenar={orden.alternar} />
-            <SortTH col="pp" label="P" orden={orden.orden} onOrdenar={orden.alternar} />
+            <SortTH col="pg" label="PG" orden={orden.orden} onOrdenar={orden.alternar} />
+            <SortTH col="pe" label="PE" orden={orden.orden} onOrdenar={orden.alternar} />
+            <SortTH col="pp" label="PP" orden={orden.orden} onOrdenar={orden.alternar} />
             <SortTH col="gf" label="GF" orden={orden.orden} onOrdenar={orden.alternar} />
             <SortTH col="gc" label="GC" orden={orden.orden} onOrdenar={orden.alternar} />
             <SortTH col="pts" label="Pts" orden={orden.orden} onOrdenar={orden.alternar} />

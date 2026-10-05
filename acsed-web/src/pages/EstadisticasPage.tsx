@@ -84,9 +84,9 @@ function TablaEquipos({ filas }: { filas: FilaEquipo[] }): JSX.Element {
         <tr className="text-stone-500">
           <SortTH col="nombre" label="Equipo" orden={orden.orden} onOrdenar={orden.alternar} align="left" />
           <SortTH col="pj" label="PJ" orden={orden.orden} onOrdenar={orden.alternar} />
-          <SortTH col="pg" label="G" orden={orden.orden} onOrdenar={orden.alternar} />
-          <SortTH col="pe" label="E" orden={orden.orden} onOrdenar={orden.alternar} />
-          <SortTH col="pp" label="P" orden={orden.orden} onOrdenar={orden.alternar} />
+          <SortTH col="pg" label="PG" orden={orden.orden} onOrdenar={orden.alternar} />
+          <SortTH col="pe" label="PE" orden={orden.orden} onOrdenar={orden.alternar} />
+          <SortTH col="pp" label="PP" orden={orden.orden} onOrdenar={orden.alternar} />
           <SortTH col="pts" label="Pts" orden={orden.orden} onOrdenar={orden.alternar} />
         </tr>
       </thead>
