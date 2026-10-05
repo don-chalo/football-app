@@ -8,6 +8,8 @@ interface Session {
   misLigas: string[];
   login: (username: string, password: string) => Promise<void>;
   logout: () => void;
+  agregarLiga: (id: string) => void;
+  quitarLiga: (id: string) => void;
   esSistema: boolean;
 }
 
@@ -54,9 +56,31 @@ export function SessionProvider({ children }: { children: ReactNode }): JSX.Elem
     }
   }, []);
 
+  const persistirLigas = useCallback((siguiente: (prev: string[]) => string[]): void => {
+    setMisLigas((prev) => {
+      const next = siguiente(prev);
+      if (next !== prev) {
+        try {
+          localStorage.setItem(MIS_LIGAS_KEY, JSON.stringify(next));
+        } catch {
+          /* sin persistencia */
+        }
+      }
+      return next;
+    });
+  }, []);
+
+  const agregarLiga = useCallback((id: string): void => {
+    persistirLigas((prev) => (prev.includes(id) ? prev : [...prev, id]));
+  }, [persistirLigas]);
+
+  const quitarLiga = useCallback((id: string): void => {
+    persistirLigas((prev) => (prev.includes(id) ? prev.filter((l) => l !== id) : prev));
+  }, [persistirLigas]);
+
   const value = useMemo<Session>(
-    () => ({ user, misLigas, login, logout, esSistema: user?.role === "admin_usuarios" }),
-    [user, misLigas, login, logout],
+    () => ({ user, misLigas, login, logout, agregarLiga, quitarLiga, esSistema: user?.role === "admin_usuarios" }),
+    [user, misLigas, login, logout, agregarLiga, quitarLiga],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

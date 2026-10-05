@@ -46,6 +46,7 @@ export function GestionPage(): JSX.Element {
 
 function LigasTab(): JSX.Element {
   const ligas = usePolling(() => services.ligas.listar(), 30_000);
+  const { agregarLiga, quitarLiga } = useSession();
   const [nombre, setNombre] = useState("");
   const [formato, setFormato] = useState<"liga" | "copa">("liga");
   const [idaVuelta, setIdaVuelta] = useState(false);
@@ -55,7 +56,8 @@ function LigasTab(): JSX.Element {
     e.preventDefault();
     setError(null);
     try {
-      await services.ligas.crear({ nombre: nombre.trim(), formato, idaVuelta: formato === "copa" && idaVuelta });
+      const creada = await services.ligas.crear({ nombre: nombre.trim(), formato, idaVuelta: formato === "copa" && idaVuelta });
+      agregarLiga(creada.id);
       setNombre("");
       ligas.refresh();
     } catch (err) {
@@ -67,6 +69,7 @@ function LigasTab(): JSX.Element {
     setError(null);
     try {
       await services.ligas.borrar(id);
+      quitarLiga(id);
       ligas.refresh();
     } catch (err) {
       setError(err);
