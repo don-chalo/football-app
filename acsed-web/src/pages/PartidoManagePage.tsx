@@ -13,7 +13,7 @@ import { formatoFechaCorta } from "../utils/fecha";
 
 export function PartidoManagePage(): JSX.Element {
   const { id = "" } = useParams();
-  const detalle = usePolling(() => services.partidos.detalle(id), 5_000);
+  const detalle = usePolling(() => services.partidos.detalle(id), 15_000);
   const mapaEquipos = useMapaEquipos();
   const mapaJugadores = useMapaJugadores();
 

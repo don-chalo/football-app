@@ -73,9 +73,9 @@ describe("home en vivo", () => {
 
     expect(await screen.findByText("En juego ahora")).toBeInTheDocument();
     expect(screen.getByText("Alfa 2 - 1 Beta")).toBeInTheDocument();
-    expect(screen.getByText("Próximos")).toBeInTheDocument();
+    expect(screen.getByText("Próximos partidos")).toBeInTheDocument();
     expect(screen.getByText("Alfa vs Beta")).toBeInTheDocument();
-    expect(screen.getByText("Tus ligas")).toBeInTheDocument();
+    expect(screen.getByText("Ligas y copas")).toBeInTheDocument();
     expect(screen.getByText("Apertura")).toBeInTheDocument();
     vi.unstubAllGlobals();
   });
@@ -86,9 +86,9 @@ describe("home en vivo", () => {
     ]));
     renderHome();
 
-    expect(await screen.findByText("Tus ligas")).toBeInTheDocument();
+    expect(await screen.findByText("Ligas y copas")).toBeInTheDocument();
     expect(screen.queryByText("En juego ahora")).not.toBeInTheDocument();
-    expect(screen.queryByText("Próximos")).not.toBeInTheDocument();
+    expect(screen.queryByText("Próximos partidos")).not.toBeInTheDocument();
     vi.unstubAllGlobals();
   });
 });

@@ -95,7 +95,7 @@ function LigasTab(): JSX.Element {
           ) : null}
         </div>
         {error ? <p className="text-red-700">{mensajeError(error)}</p> : null}
-        <Button disabled={!nombre.trim()}>Crear liga</Button>
+        <Button disabled={!nombre.trim()}>Crear</Button>
       </form>
       {(ligas.data ?? []).map((l) => (
         <div key={l.id} className="flex items-center justify-between border-t border-stone-100 min-h-11">

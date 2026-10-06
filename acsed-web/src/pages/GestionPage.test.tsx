@@ -43,7 +43,7 @@ describe("misLigas tras crear liga", () => {
     );
 
     await user.type(await screen.findByLabelText("Nombre de liga"), "Nueva");
-    await user.click(screen.getByText("Crear liga"));
+    await user.click(screen.getByText("Crear"));
 
     await waitFor(() => expect(screen.getByTestId("ligas")).toHaveTextContent("l1,l9"));
     expect(localStorage.getItem("acsed.misLigas")).toBe('["l1","l9"]');

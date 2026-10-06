@@ -33,11 +33,13 @@ export function PartidoCard(partido: PartidoRowProps) {
           <span className="min-w-0 truncate font-bold">{partido.mapaEquipos.get(partido.visitaId) ?? "?"}</span>
           <span className="text-2xl font-black tabular-nums">{partido.marcador.visita}</span>
         </div>
-        {secundaria ? (
-          <p className="text-xs text-neutral-600 mt-1">{secundaria}</p>
-        ) : null}
+        <div className="flex items-baseline justify-start gap-2">
+          {secundaria ? (
+            <p className="text-xs text-neutral-600 mt-1">{secundaria}</p>
+          ) : null}
+          <Badge tono={tonoPorEstado(partido.estado)} pulso={partido.estado === "en_juego"}>{partido.estado}</Badge>
+        </div>
       </div>
-      <Badge tono={tonoPorEstado(partido.estado)} pulso={partido.estado === "en_juego"}>{partido.estado}</Badge>
     </div>
   </Card>;
 }

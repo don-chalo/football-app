@@ -81,7 +81,7 @@ export function LigasPage(): JSX.Element {
       ) : null}
       {proximos.length > 0 ? (
         <div className="flex flex-col gap-2">
-          <h2 className="font-bold">Próximos</h2>
+          <h2 className="font-bold">Próximos partidos</h2>
           {proximos.map((p) => (
             <Link key={p.id} to={`/partidos/${p.id}`}>
               <Card>
@@ -96,17 +96,21 @@ export function LigasPage(): JSX.Element {
           ))}
         </div>
       ) : null}
-      <h2 className="font-bold">Tus ligas</h2>
-      {data.map((l) => (
-        <Link key={l.id} to={`/ligas/${l.id}`}>
-          <Card>
-            <div className="flex items-center justify-between min-h-11">
-              <span className="font-bold">{l.nombre}</span>
-              <Badge>{l.formato === "liga" ? `Liga${l.idaVuelta ? " ida/vuelta" : ""}` : `Copa${l.idaVuelta ? " ida+vuelta" : ""}`}</Badge>
-            </div>
-          </Card>
-        </Link>
-      ))}
+      {data.length > 0 ? (
+        <>
+        <h2 className="font-bold">Ligas y copas</h2>
+          {data.map((l) => (
+            <Link key={l.id} to={`/ligas/${l.id}`}>
+              <Card>
+                <div className="flex items-center justify-between min-h-11">
+                  <span className="font-bold">{l.nombre}</span>
+                  <Badge>{l.formato === "liga" ? `Liga${l.idaVuelta ? " ida/vuelta" : ""}` : `Copa${l.idaVuelta ? " ida+vuelta" : ""}`}</Badge>
+                </div>
+              </Card>
+            </Link>
+          ))}        
+        </>
+      ) : <Empty texto="Sin ligas todavía." />}
     </div>
   );
 }
