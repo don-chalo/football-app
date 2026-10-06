@@ -46,6 +46,8 @@ export const estadoSchema = z.object({ estado: z.enum(["programado", "en_juego",
 export const pausaSchema = z.object({ pausada: z.boolean() });
 
 export const convocatoriaSchema = z.object({ jugadorId: objectId, equipoId: objectId });
+export const convocatoriaLoteSchema = z.object({ equipoId: objectId, jugadorIds: z.array(objectId).min(1, "Al menos un jugador").max(30, "Maximo 30 jugadores por lote") });
+export const convocatoriaBodySchema = z.union([convocatoriaSchema, convocatoriaLoteSchema]);
 export const convocatoriaPatchSchema = z.object({ estado: z.enum(["convocado", "ausente"]) });
 
 export const eventoSchema = z.object({

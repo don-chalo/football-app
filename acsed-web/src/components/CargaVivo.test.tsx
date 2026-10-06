@@ -209,9 +209,8 @@ describe("CargaVivo compacta", () => {
     vi.unstubAllGlobals();
   });
 
-  it("cronología colapsada sigue expandible con borrado por evento", async () => {    const user = userEvent.setup();
-    const fetchMock = mockDetalle();
-    vi.stubGlobal("fetch", fetchMock);
+  it("cronología colapsada sigue expandible y es de solo lectura", async () => {    const user = userEvent.setup();
+    vi.stubGlobal("fetch", mockDetalle());
     render(
       <CargaVivo
         partidoId="p"
@@ -230,15 +229,10 @@ describe("CargaVivo compacta", () => {
       />,
     );
 
-    expect(screen.queryByLabelText("Borrar gol de Juan")).not.toBeInTheDocument();
+    expect(screen.queryByText("penal")).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /Cronología \(2\)/ }));
-    await user.click(screen.getByLabelText("Borrar gol de Juan"));
-    await waitFor(() => {
-      expect(fetchMock).toHaveBeenCalledWith(
-        expect.stringContaining("/eventos/ev1"),
-        expect.objectContaining({ method: "DELETE" }),
-      );
-    });
+    expect(await screen.findByText("penal")).toBeInTheDocument();
+    expect(screen.getByText("gol")).toBeInTheDocument();
     vi.unstubAllGlobals();
   });
 });
@@ -258,10 +252,10 @@ describe("CargaVivo lista unificada", () => {
       const u = String(url);
       const m = init?.method ?? "GET";
       if (m === "POST" && u.endsWith("/convocatorias")) {
-        return new Response(JSON.stringify({ id: "c9" }), { status: 201 });
+        return new Response(JSON.stringify({ creados: [{ id: "c9" }, { id: "c10" }], omitidos: [] }), { status: 201 });
       }
       if (m === "GET" && u.endsWith("/jugadores")) {
-        return new Response(JSON.stringify([{ id: "j9", nombre: "Diego" }]), { status: 200 });
+        return new Response(JSON.stringify([{ id: "j9", nombre: "Diego" }, { id: "j10", nombre: "Martin" }]), { status: 200 });
       }
       if (m === "DELETE") return new Response(null, { status: 204 });
       return new Response(JSON.stringify({ id: "c1" }), { status: 200 });
@@ -369,7 +363,7 @@ describe("CargaVivo lista unificada", () => {
     vi.unstubAllGlobals();
   });
 
-  it("agregar por equipo suma en silencio", async () => {
+  it("agregar por equipo: multiseleccion en un solo POST con toast", async () => {
     const user = userEvent.setup();
     const fetchMock = mockApi();
     vi.stubGlobal("fetch", fetchMock);
@@ -379,6 +373,10 @@ describe("CargaVivo lista unificada", () => {
     await user.click(screen.getAllByText("+ Agregar jugador")[0] as HTMLElement);
     expect(await screen.findByText("Alfa · Agregar")).toBeInTheDocument();
     await user.click(await screen.findByText("Diego"));
+    await user.click(await screen.findByText("Martin"));
+    expect(screen.getByText("Agregar (2)")).toBeInTheDocument();
+
+    await user.click(screen.getByText("Agregar (2)"));
 
     await waitFor(() => {
       expect(fetchMock).toHaveBeenCalledWith(
@@ -386,9 +384,29 @@ describe("CargaVivo lista unificada", () => {
         expect.objectContaining({ method: "POST" }),
       );
     });
-    const [, init] = fetchMock.mock.calls.find(([, i]) => (i as RequestInit).method === "POST") as unknown as [string, RequestInit];
-    expect(JSON.parse(init.body as string) as unknown).toMatchObject({ jugadorId: "j9", equipoId: "e1" });
-    expect(onCambio).toHaveBeenCalled();
+    const posts = fetchMock.mock.calls.filter(([, i]) => (i as RequestInit).method === "POST");
+    expect(posts).toHaveLength(1);
+    const [, init] = posts[0] as unknown as [string, RequestInit];
+    expect(JSON.parse(init.body as string) as unknown).toMatchObject({ equipoId: "e1", jugadorIds: ["j9", "j10"] });
+    expect(onCambio).toHaveBeenCalledTimes(1);
+    expect(await screen.findByText("2 jugadores agregados")).toBeInTheDocument();
+    vi.unstubAllGlobals();
+  });
+
+  it("filtro por nombre reduce la lista y sin seleccion no confirma", async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal("fetch", mockApi());
+    renderUni("en_juego");
+
+    await user.click(screen.getAllByText("+ Agregar jugador")[0] as HTMLElement);
+    await screen.findByText("Alfa · Agregar");
+    expect(screen.getByText("Agregar (0)")).toBeDisabled();
+
+    await user.type(screen.getByPlaceholderText("Filtrar por nombre"), "mar");
+    await waitFor(() => {
+      expect(screen.queryByText("Diego")).not.toBeInTheDocument();
+    });
+    expect(screen.getByText("Martin")).toBeInTheDocument();
     vi.unstubAllGlobals();
   });
 

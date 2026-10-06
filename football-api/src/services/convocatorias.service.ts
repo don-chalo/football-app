@@ -38,6 +38,40 @@ export function createConvocatoriasService(d: Deps) {
       });
     },
 
+    async convocarLote(partidoId: string, equipoId: string, jugadorIds: string[], actor?: Actor): Promise<{ creados: Convocatoria[]; omitidos: string[] }> {
+      const p = await d.partidos.findById(partidoId);
+      if (!p) throw notFound("Partido");
+      const eq = await d.equipos.findById(equipoId);
+      if (!eq) throw notFound("Equipo");
+      if (equipoId !== p.localId && equipoId !== p.visitaId) {
+        throw unprocessable("El equipo debe ser local o visita del partido");
+      }
+      const creados: Convocatoria[] = [];
+      const omitidos: string[] = [];
+      const vistos = new Set<string>();
+      for (const jugadorId of jugadorIds) {
+        if (vistos.has(jugadorId)) {
+          omitidos.push(jugadorId);
+          continue;
+        }
+        vistos.add(jugadorId);
+        const jug = await d.jugadores.findById(jugadorId);
+        if (!jug) throw notFound("Jugador");
+        if (await d.convocatorias.findByPartidoJugador(partidoId, jugadorId)) {
+          omitidos.push(jugadorId);
+          continue;
+        }
+        creados.push(await d.convocatorias.create({
+          partidoId,
+          jugadorId,
+          equipoId,
+          estado: "convocado",
+          createdBy: actor ? { userId: actor.userId, username: actor.username } : null,
+        }));
+      }
+      return { creados, omitidos };
+    },
+
     async marcar(id: string, estado: Convocatoria["estado"]): Promise<Convocatoria> {
       const c = await d.convocatorias.findById(id);
       if (!c) throw notFound("Convocatoria");

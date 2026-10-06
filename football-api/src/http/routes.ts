@@ -13,7 +13,7 @@ import {
   requireLigaAccess,
   type ScopeDeps,
 } from "./middleware/scope";
-import { estadoSchema, pausaSchema, eventoPatchSchema, eventoSchema, convocatoriaPatchSchema, convocatoriaSchema, ligaPatchSchema, ligaSchema, loginSchema, nombreSchema, objectId, partidoCreateSchema, partidoPatchSchema, userCreateSchema, userPatchSchema } from "./schemas";
+import { estadoSchema, pausaSchema, eventoPatchSchema, eventoSchema, convocatoriaBodySchema, convocatoriaPatchSchema, ligaPatchSchema, ligaSchema, loginSchema, nombreSchema, objectId, partidoCreateSchema, partidoPatchSchema, userCreateSchema, userPatchSchema } from "./schemas";
 import type { Services } from "./services";
 import type { Actor, Role } from "../repositories/types";
 
@@ -220,9 +220,13 @@ export function buildRouter(s: Services, deps: RouterDeps): Router {
     res.json(await s.convocatorias.list(parseId(partidoParam.parse(req.params).partidoId)));
   }));
   r.post("/partidos/:partidoId/convocatorias", ...scope(ligaFromPartidoParam(deps)), conActor, asyncHandler(async (req, res) => {
-    const body = convocatoriaSchema.parse(req.body);
+    const body = convocatoriaBodySchema.parse(req.body);
     const pid = parseId(partidoParam.parse(req.params).partidoId);
-    res.status(201).json(await s.convocatorias.convocar(pid, parseId(body.jugadorId), parseId(body.equipoId), soloActor(req)));
+    if ("jugadorIds" in body) {
+      res.status(201).json(await s.convocatorias.convocarLote(pid, parseId(body.equipoId), body.jugadorIds.map(parseId), soloActor(req)));
+    } else {
+      res.status(201).json(await s.convocatorias.convocar(pid, parseId(body.jugadorId), parseId(body.equipoId), soloActor(req)));
+    }
   }));
   r.patch("/convocatorias/:id", ...scope(ligaFromConvocatoria(deps)), asyncHandler(async (req, res) => {
     const body = convocatoriaPatchSchema.parse(req.body);

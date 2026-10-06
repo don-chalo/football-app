@@ -32,7 +32,7 @@ The administrative list of partidos for a liga SHALL display each partido's calc
 - **THEN** that match row displays its calculated local and visiting goal totals without requiring the admin to open the match workspace.
 
 ### Requirement: Single convocatoria list in match workspace
-The admin match workspace SHALL show exactly one convocatoria list ("Convocatoria y goles"), visible in every estado (`programado`, `en_juego`, `finalizado`, `suspendido`); there SHALL be no separate "Convocados" card. In `suspendido` the list SHALL be read-only (rows do not open the sheet, no "+ Agregar jugador", no goal entry).
+The admin match workspace SHALL show exactly one convocatoria list ("Convocatoria y goles"), visible in every estado (`programado`, `en_juego`, `finalizado`, `suspendido`); there SHALL be no separate "Convocados" card. In `suspendido` the list SHALL be read-only (rows do not open the sheet, no "+ Agregar jugador", no goal entry). Adding jugadores to the convocatoria SHALL accept multiple jugadores per sheet session in a single request (bulk `{ equipoId, jugadorIds[] }` with a per-request cap); duplicate jugadores from concurrent adds SHALL be skipped and reported as omitted, never failing the whole batch. There is no fixed jugador-equipo membership: the only invariant is one jugador, one equipo per partido.
 
 #### Scenario: Workspace has one list
 - **WHEN** an admin opens a partido workspace in any estado
@@ -41,6 +41,10 @@ The admin match workspace SHALL show exactly one convocatoria list ("Convocatori
 #### Scenario: Suspendido workspace without actions
 - **WHEN** an admin opens a `suspendido` partido workspace
 - **THEN** the list is visible but tapping a player does nothing and no add controls are offered.
+
+#### Scenario: Concurrent duplicate is skipped
+- **WHEN** a bulk add includes a jugador convocado by another operator seconds earlier
+- **THEN** the rest of the batch is created and the response reports that jugador as omitted.
 
 ### Requirement: Suspend programado partido
 The workspace of a `programado` partido SHALL offer "Suspender" with inline confirm next to "Poner en juego"; suspending SHALL set estado `suspendido`. Fixture and lists SHALL show `suspendido` partidos attenuated with a neutral badge; "Poner en juego" SHALL NOT be offered in `suspendido`.

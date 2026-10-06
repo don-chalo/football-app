@@ -49,6 +49,9 @@ export function CargaVivo({ partidoId, estadoPartido, localId, visitaId, convoca
   const [deshacerId, setDeshacerId] = useState<string | null>(null);
   const [confirmarQuitar, setConfirmarQuitar] = useState<string | null>(null);
   const [avisoQuitar, setAvisoQuitar] = useState<string | null>(null);
+  const [seleccion, setSeleccion] = useState<string[]>([]);
+  const [filtro, setFiltro] = useState("");
+  const [avisoAgregados, setAvisoAgregados] = useState<string | null>(null);
 
   const catalogo = usePolling(() => services.jugadores.listar(), 60_000);
 
@@ -86,6 +89,8 @@ export function CargaVivo({ partidoId, estadoPartido, localId, visitaId, convoca
     setHoja(null);
     setConfirmarQuitar(null);
     setAvisoQuitar(null);
+    setSeleccion([]);
+    setFiltro("");
   }
 
   async function registrar(tipo: TipoEvento): Promise<void> {
@@ -150,15 +155,25 @@ export function CargaVivo({ partidoId, estadoPartido, localId, visitaId, convoca
     }
   }
 
-  async function agregarJugador(equipoId: string, jugadorId: string): Promise<void> {
+  async function agregarLoteJugadores(equipoId: string): Promise<void> {
+    if (seleccion.length === 0 || enviando) return;
+    setEnviando(true);
     setError(null);
     try {
-      await services.convocatorias.agregar(partidoId, { jugadorId, equipoId });
+      const r = await services.convocatorias.agregarLote(partidoId, equipoId, seleccion);
+      const n = r.creados.length;
+      setAvisoAgregados(`${String(n)} jugador${n === 1 ? "" : "es"} agregado${n === 1 ? "" : "s"}`);
       cerrarHoja();
       onCambio();
     } catch (err) {
       setError(err);
+    } finally {
+      setEnviando(false);
     }
+  }
+
+  function alternarSeleccion(jugadorId: string): void {
+    setSeleccion((prev) => (prev.includes(jugadorId) ? prev.filter((id) => id !== jugadorId) : [...prev, jugadorId]));
   }
 
   async function borrar(id: string): Promise<void> {
@@ -176,6 +191,8 @@ export function CargaVivo({ partidoId, estadoPartido, localId, visitaId, convoca
 
   const eventosJugador = hoja?.modo === "quitar" ? eventos.filter((e) => e.jugadorId === hoja.jugadorId) : [];
   const disponibles = (catalogo.data ?? []).filter((j) => !convocatorias.some((c) => c.jugadorId === j.id));
+  const filtroNorm = filtro.trim().toLowerCase();
+  const filtrados = filtroNorm === "" ? disponibles : disponibles.filter((j) => j.nombre.toLowerCase().includes(filtroNorm));
   const muestraFin = !!finEn || estadoPartido === "finalizado";
   const tituloHoja = !hoja
     ? ""
@@ -235,6 +252,8 @@ export function CargaVivo({ partidoId, estadoPartido, localId, visitaId, convoca
                   type="button"
                   onClick={() => {
                     setError(null);
+                    setSeleccion([]);
+                    setFiltro("");
                     setHoja({ modo: "agregar-jugador", equipoId });
                   }}
                   className="min-h-11 flex items-center justify-center gap-2 rounded-lg border border-dashed border-cancha-600/40 px-3 text-cancha-700 font-medium"
@@ -278,14 +297,6 @@ export function CargaVivo({ partidoId, estadoPartido, localId, visitaId, convoca
                   <span className="text-sm">
                     {nombreJugador(e.jugadorId)} · <Badge>{e.tipo}</Badge>{e.minuto !== null ? ` - ${String(e.minuto)}'` : ""}
                   </span>
-                  <button
-                    type="button"
-                    aria-label={`Borrar gol de ${nombreJugador(e.jugadorId)}`}
-                    onClick={() => void borrar(e.id)}
-                    className="min-h-11 px-2 text-red-700 font-bold"
-                  >
-                    ×
-                  </button>
                 </li>
               ))}
               {inicioEn || estadoPartido === "en_juego" || estadoPartido === "finalizado" ? (
@@ -330,21 +341,47 @@ export function CargaVivo({ partidoId, estadoPartido, localId, visitaId, convoca
             )}
           </div>
         ) : hoja?.modo === "agregar-jugador" ? (
-          <div className="flex flex-col gap-1">
-            {disponibles.length === 0 ? (
-              <p className="text-sm text-stone-500">Sin jugadores disponibles.</p>
+          <div className="flex flex-col gap-2">
+            <Input
+              aria-label="Filtrar jugadores por nombre"
+              placeholder="Filtrar por nombre"
+              value={filtro}
+              onChange={(e) => { setFiltro(e.target.value); }}
+            />
+            {filtrados.length === 0 ? (
+              <p className="text-sm text-stone-500">
+                {disponibles.length === 0 ? "Sin jugadores disponibles." : "Sin coincidencias."}
+              </p>
             ) : (
-              disponibles.map((j) => (
-                <button
-                  key={j.id}
-                  type="button"
-                  onClick={() => void agregarJugador(hoja.equipoId, j.id)}
-                  className="min-h-13 flex items-center rounded-lg bg-neutral-50 border border-neutral-200 px-3 text-left font-medium active:bg-cancha-100"
-                >
-                  {j.nombre}
-                </button>
-              ))
+              <div className="flex flex-col gap-1 max-h-72 overflow-y-auto">
+                {filtrados.map((j) => {
+                  const elegido = seleccion.includes(j.id);
+                  return (
+                    <button
+                      key={j.id}
+                      type="button"
+                      aria-pressed={elegido}
+                      onClick={() => { alternarSeleccion(j.id); }}
+                      className={`min-h-13 flex items-center justify-between gap-2 rounded-lg border px-3 text-left font-medium ${
+                        elegido
+                          ? "bg-cancha-100 border-cancha-600 text-cancha-950"
+                          : "bg-neutral-50 border-neutral-200 active:bg-cancha-100"
+                      }`}
+                    >
+                      <span>{j.nombre}</span>
+                      {elegido ? <span aria-hidden="true" className="font-bold text-cancha-700">✓</span> : null}
+                    </button>
+                  );
+                })}
+              </div>
             )}
+            <Button
+              disabled={seleccion.length === 0 || enviando}
+              onClick={() => void agregarLoteJugadores(hoja.equipoId)}
+              className="min-h-13 text-base"
+            >
+              {enviando ? "Agregando..." : `Agregar (${String(seleccion.length)})`}
+            </Button>
           </div>
         ) : hoja?.modo === "agregar" ? (
           <div className="flex flex-col gap-2">
@@ -410,6 +447,9 @@ export function CargaVivo({ partidoId, estadoPartido, localId, visitaId, convoca
       </Sheet>
 
       {deshacerId ? <Toast texto="Gol registrado" accionTxt="Deshacer" onAccion={() => { void deshacer(); }} /> : null}
+      {avisoAgregados && !deshacerId ? (
+        <Toast texto={avisoAgregados} accionTxt="OK" onAccion={() => { setAvisoAgregados(null); }} />
+      ) : null}
     </div>
   );
 }
