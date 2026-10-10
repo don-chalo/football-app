@@ -107,19 +107,22 @@ export function Sheet({
   onOpenChange,
   title,
   children,
+  onOpenAutoFocus = (e: Event) => { e.preventDefault(); },
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   title: string;
   children: ReactNode;
+  onOpenAutoFocus?: (e: Event) => void;
 }): JSX.Element {
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 bg-black/40" />
+        <Dialog.Overlay className="fixed inset-0 z-40 bg-black/40" />
         <Dialog.Content
           aria-describedby={undefined}
-          className="fixed bottom-0 left-0 right-0 mx-auto max-w-2xl bg-white rounded-t-2xl p-4 pb-8 max-h-[80vh] overflow-y-auto"
+          onOpenAutoFocus={onOpenAutoFocus}
+          className="fixed bottom-0 left-0 right-0 z-50 mx-auto max-w-2xl bg-white rounded-t-2xl p-4 pb-8 max-h-[80vh] overflow-y-auto"
         >
           <Dialog.Title className="font-bold text-lg mb-3">{title}</Dialog.Title>
           {children}
@@ -132,7 +135,7 @@ export function Sheet({
 /** Toast inferior simple con acción. */
 export function Toast({ texto, accionTxt, onAccion }: { texto: string; accionTxt: string; onAccion: () => void }): JSX.Element {
   return (
-    <div className="fixed bottom-4 left-3 right-3 mx-auto max-w-2xl bg-cancha-950 text-white rounded-xl px-4 py-3 flex items-center justify-between gap-3">
+    <div className="fixed bottom-4 left-3 right-3 z-50 mx-auto max-w-2xl bg-cancha-950 text-white rounded-xl px-4 py-3 flex items-center justify-between gap-3">
       <span>{texto}</span>
       <button type="button" onClick={onAccion} className="font-bold underline min-h-11 px-2">
         {accionTxt}

@@ -26,7 +26,7 @@ function Barra(): JSX.Element {
   const claseNavMovil = ({ isActive }: { isActive: boolean }): string =>
     `min-h-11 flex items-center justify-start border rounded-lg px-3 ${isActive ? "bg-energia-400 text-cancha-950 border-transparent font-bold" : "border-white/20 text-white"}`;
   return (
-    <header className="sticky top-0 bg-cancha-950 px-4 min-h-14 flex items-center justify-between">
+    <header className="sticky top-0 z-30 bg-cancha-950 px-4 min-h-14 flex items-center justify-between">
       <Link to="/" className="font-black tracking-wide min-h-11 flex items-center text-energia-400" tool-tip="Ir a la página principal">
         <span className="mr-2">ACSED WEB</span>
         <SoccerBall />
