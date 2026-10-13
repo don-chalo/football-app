@@ -7,6 +7,7 @@ import { SortTH } from "../components/SortTH";
 import { TablaEquipos as TablaPosiciones } from "../components/TablaEquipos";
 import { usePolling } from "../hooks/usePolling";
 import { useOrden } from "../hooks/useOrden";
+import { rendimiento, rendimientoValor } from "../utils/rendimiento";
 import { Tab } from "../components/Tab";
 
 function anoActual(): { desde: string; hasta: string } {
@@ -77,6 +78,8 @@ function TablaEquipos({ filas }: { filas: FilaEquipo[] }): JSX.Element {
         return f.pp;
       case "dif":
         return f.dif;
+      case "rend":
+        return rendimientoValor(f.pg, f.pe, f.pj);
       default:
         return f.pts;
     }
@@ -117,6 +120,8 @@ function TablaJugadores({ filas }: { filas: FilaJugador[] }): JSX.Element {
         return f.pe;
       case "pp":
         return f.pp;
+      case "rend":
+        return rendimientoValor(f.pg, f.pe, f.pj);
       case "goles":
         return f.goles;
       case "autogoles":
@@ -136,6 +141,7 @@ function TablaJugadores({ filas }: { filas: FilaJugador[] }): JSX.Element {
           <SortTH col="pg" label="PG" orden={orden.orden} onOrdenar={orden.alternar} />
           <SortTH col="pe" label="PE" orden={orden.orden} onOrdenar={orden.alternar} />
           <SortTH col="pp" label="PP" orden={orden.orden} onOrdenar={orden.alternar} />
+          <SortTH col="rend" label="%" hint="% de rendimiento" orden={orden.orden} onOrdenar={orden.alternar} />
           <SortTH col="goles" label="Goles" orden={orden.orden} onOrdenar={orden.alternar} />
           <SortTH col="autogoles" label="Autogoles" orden={orden.orden} onOrdenar={orden.alternar} />
           <SortTH col="convocados" label="Convocado" orden={orden.orden} onOrdenar={orden.alternar} />
@@ -150,6 +156,7 @@ function TablaJugadores({ filas }: { filas: FilaJugador[] }): JSX.Element {
             <td className="p-2 text-center">{f.pg}</td>
             <td className="p-2 text-center">{f.pe}</td>
             <td className="p-2 text-center">{f.pp}</td>
+            <td className="p-2 text-center tabular-nums">{rendimiento(f.pg, f.pe, f.pj)}</td>
             <td className="p-2 text-center font-bold">{f.goles}</td>
             <td className="p-2 text-center">{f.autogoles}</td>
             <td className="p-2 text-center">{f.convocados}</td>

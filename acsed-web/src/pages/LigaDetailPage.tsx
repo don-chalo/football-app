@@ -9,6 +9,7 @@ import { useSession } from "../auth/Session";
 import { useMapaEquipos } from "../hooks/useNombres";
 import { porFechaDesc } from "../hooks/orden";
 import { useOrden } from "../hooks/useOrden";
+import { rendimiento, rendimientoValor } from "../utils/rendimiento";
 import { usePolling } from "../hooks/usePolling";
 import { PartidoCard } from "../components/PartidoCard";
 import { TablaEquipos } from "../components/TablaEquipos";
@@ -135,6 +136,8 @@ function TablaTab({ ligaId, nombres }: { ligaId: string; nombres: Map<string, st
         return f.gc;
       case "dif":
         return f.dif;
+      case "rend":
+        return rendimientoValor(f.pg, f.pe, f.pj);
       default:
         return f.pts;
     }
@@ -196,6 +199,8 @@ function JugadoresTab({ ligaId }: { ligaId: string }): JSX.Element {
         return f.pe;
       case "pp":
         return f.pp;
+      case "rend":
+        return rendimientoValor(f.pg, f.pe, f.pj);
       case "goles":
         return f.goles;
       case "autogoles":
@@ -219,6 +224,7 @@ function JugadoresTab({ ligaId }: { ligaId: string }): JSX.Element {
             <SortTH col="pg" label="PG" orden={orden.orden} onOrdenar={orden.alternar} />
             <SortTH col="pe" label="PE" orden={orden.orden} onOrdenar={orden.alternar} />
             <SortTH col="pp" label="PP" orden={orden.orden} onOrdenar={orden.alternar} />
+            <SortTH col="rend" label="%" hint="% de rendimiento" orden={orden.orden} onOrdenar={orden.alternar} />
             <SortTH col="goles" label="Goles" orden={orden.orden} onOrdenar={orden.alternar} />
             <SortTH col="autogoles" label="Autogoles" orden={orden.orden} onOrdenar={orden.alternar} />
             <SortTH col="convocados" label="Convocado" orden={orden.orden} onOrdenar={orden.alternar} />
@@ -233,6 +239,7 @@ function JugadoresTab({ ligaId }: { ligaId: string }): JSX.Element {
               <td className="p-2 text-center">{f.pg}</td>
               <td className="p-2 text-center">{f.pe}</td>
               <td className="p-2 text-center">{f.pp}</td>
+              <td className="p-2 text-center tabular-nums">{rendimiento(f.pg, f.pe, f.pj)}</td>
               <td className="p-2 text-center font-bold">{f.goles}</td>
               <td className="p-2 text-center">{f.autogoles}</td>
               <td className="p-2 text-center">{f.convocados}</td>

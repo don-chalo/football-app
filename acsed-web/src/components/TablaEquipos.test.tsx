@@ -28,9 +28,27 @@ describe("TablaEquipos responsive", () => {
     expect(screen.queryByText(/PG 3 · PE 1/)).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Detalle de Alfa" }));
-    expect(screen.getByText("PG 3 · PE 1 · PP 1 · GF 10 · GC 4")).toBeInTheDocument();
+    expect(screen.getByText("PG 3 · PE 1 · PP 1 · GF 10 · GC 4 · % 66.7")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Detalle de Alfa" }));
     expect(screen.queryByText(/PG 3 · PE 1/)).not.toBeInTheDocument();
+  });
+
+  it("muestra % con tooltip y ordena por rendimiento", async () => {
+    const user = userEvent.setup();
+    const alternar = vi.fn();
+    render(
+      <TablaEquipos
+        filas={[fila]}
+        orden={{ orden: { key: null, dir: "desc" }, alternar }}
+        nombreDe={(f) => f.nombre}
+      />,
+    );
+
+    expect(screen.getByText("66.7")).toBeInTheDocument();
+    const th = screen.getByTitle("% de rendimiento");
+    expect(th).toHaveTextContent("%");
+    await user.click(th);
+    expect(alternar).toHaveBeenCalledWith("rend");
   });
 });

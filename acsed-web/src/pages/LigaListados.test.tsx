@@ -42,6 +42,14 @@ function mockFetch(formato: "liga" | "copa") {
         { status: 200 },
       );
     }
+    if (u.includes("/estadisticas/jugadores")) {
+      return new Response(
+        JSON.stringify([
+          { jugadorId: "j1", nombre: "Juan", pj: 3, pg: 2, pe: 0, pp: 1, goles: 4, autogoles: 0, convocados: 3, ausentes: 0, inasistencia: 0, jugados: 3 },
+        ]),
+        { status: 200 },
+      );
+    }
     return new Response("[]", { status: 200 });
   });
 }
@@ -276,6 +284,19 @@ describe("empty con accion", () => {
 
     expect(await screen.findByText("Sin partidos.")).toBeInTheDocument();
     expect(screen.queryByText("+ Nuevo partido")).not.toBeInTheDocument();
+    vi.unstubAllGlobals();
+  });
+
+  it("tab jugadores muestra % a la derecha de PP", async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal("fetch", mockFetch("liga"));
+    renderLiga();
+
+    await user.click(await screen.findByText("Jugadores"));
+    expect(await screen.findByText("66.7")).toBeInTheDocument();
+    const fila = screen.getByText("Juan").closest("tr") as HTMLElement;
+    const celdas = [...fila.querySelectorAll("td")].map((td) => td.textContent);
+    expect(celdas).toMatchObject(["Juan", "3", "2", "0", "1", "66.7", "4", "0", "3", "0"]);
     vi.unstubAllGlobals();
   });
 });

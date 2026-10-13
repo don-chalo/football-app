@@ -1,6 +1,7 @@
 import { Fragment, useState, type JSX } from "react";
 import type { FilaEquipo } from "../api/types";
 import type { Orden, OrdenKey } from "../hooks/useOrden";
+import { rendimiento } from "../utils/rendimiento";
 import { SortTH } from "./SortTH";
 
 /**
@@ -27,6 +28,7 @@ export function TablaEquipos({ filas, orden, nombreDe }: {
           <SortTH col="pp" label="PP" orden={orden.orden} onOrdenar={orden.alternar} className={extra} />
           <SortTH col="gf" label="GF" orden={orden.orden} onOrdenar={orden.alternar} className={extra} />
           <SortTH col="gc" label="GC" orden={orden.orden} onOrdenar={orden.alternar} className={extra} />
+          <SortTH col="rend" label="%" hint="% de rendimiento" orden={orden.orden} onOrdenar={orden.alternar} />
           <SortTH col="pts" label="Pts" orden={orden.orden} onOrdenar={orden.alternar} />
         </tr>
       </thead>
@@ -55,12 +57,13 @@ export function TablaEquipos({ filas, orden, nombreDe }: {
               <td className={`p-2 text-center ${extra}`}>{f.pp}</td>
               <td className={`p-2 text-center ${extra}`}>{f.gf}</td>
               <td className={`p-2 text-center ${extra}`}>{f.gc}</td>
+              <td className="p-2 text-center tabular-nums">{rendimiento(f.pg, f.pe, f.pj)}</td>
               <td className="p-2 text-center font-bold">{f.pts}</td>
             </tr>
             {expandida[f.equipoId] === true ? (
               <tr className="md:hidden border-t border-stone-100">
-                <td colSpan={4} className="p-2 text-sm text-stone-600">
-                  PG {f.pg} · PE {f.pe} · PP {f.pp} · GF {f.gf} · GC {f.gc}
+                <td colSpan={5} className="p-2 text-sm text-stone-600">
+                  PG {f.pg} · PE {f.pe} · PP {f.pp} · GF {f.gf} · GC {f.gc} · % {rendimiento(f.pg, f.pe, f.pj)}
                 </td>
               </tr>
             ) : null}

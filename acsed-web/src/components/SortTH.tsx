@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import { InfoCircledIcon } from "@radix-ui/react-icons";
 import type { Orden, OrdenKey } from "../hooks/useOrden";
 
 /** Header clicable con indicador de dirección. */
@@ -9,6 +10,7 @@ export function SortTH({
   onOrdenar,
   align = "center",
   className = "",
+  hint,
 }: {
   col: OrdenKey;
   label: string;
@@ -16,6 +18,7 @@ export function SortTH({
   onOrdenar: (col: OrdenKey) => void;
   align?: "left" | "center";
   className?: string;
+  hint?: string;
 }): JSX.Element {
   const activo = orden.key === col;
   const marca = activo ? (orden.dir === "asc" ? " ▲" : " ▼") : "";
@@ -27,9 +30,17 @@ export function SortTH({
           onOrdenar(col);
         }}
         aria-sort={activo ? (orden.dir === "asc" ? "ascending" : "descending") : "none"}
+        title={hint}
         className="min-h-11 px-2 font-medium"
       >
         {label}
+        {hint ? (
+          <>
+            {" "}
+            <InfoCircledIcon aria-hidden="true" className="inline w-3.5 h-3.5" />
+            <span className="sr-only">{hint}</span>
+          </>
+        ) : null}
         {marca}
       </button>
     </th>
