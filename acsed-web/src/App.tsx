@@ -56,7 +56,7 @@ function Barra(): JSX.Element {
           </Link>
         )}
       </nav>
-      <div className="relative md:hidden" onKeyDown={(event) => {
+      <div className="relative sm:hidden" onKeyDown={(event) => {
           if (event.key === "Escape") {
             setMenuAbierto(false);
           }

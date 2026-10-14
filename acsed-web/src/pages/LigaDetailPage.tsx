@@ -4,7 +4,6 @@ import { services } from "../api/services";
 import type { FilaEquipo } from "../api/types";
 import type { PartidoListado } from "../api/partidos";
 import { Badge, Card, Empty, ErrorMsg, Loading, SkeletonFilas, Title } from "../components/ui";
-import { SortTH } from "../components/SortTH";
 import { useSession } from "../auth/Session";
 import { useMapaEquipos } from "../hooks/useNombres";
 import { porFechaDesc } from "../hooks/orden";
@@ -13,6 +12,7 @@ import { rendimiento, rendimientoValor } from "../utils/rendimiento";
 import { usePolling } from "../hooks/usePolling";
 import { PartidoCard } from "../components/PartidoCard";
 import { TablaEquipos } from "../components/TablaEquipos";
+import { TablaJugadores } from "../components/TablaJugadores";
 import * as Tabs from "@radix-ui/react-tabs";
 import { Tab } from "../components/Tab";
 
@@ -194,75 +194,12 @@ function JugadoresTab({ ligaId }: { ligaId: string }): JSX.Element {
     () => services.estadisticas.porLigaJugadores(ligaId),
     15_000,
   );
-  const orden = useOrden(data ?? [], (f, k) => {
-    switch (k) {
-      case "nombre":
-        return f.nombre;
-      case "pj":
-        return f.pj;
-      case "pg":
-        return f.pg;
-      case "pe":
-        return f.pe;
-      case "pp":
-        return f.pp;
-      case "rend":
-        return rendimientoValor(f.pg, f.pe, f.pj);
-      case "goles":
-        return f.goles;
-      case "autogoles":
-        return f.autogoles;
-      case "amarillas":
-        return f.amarillas;
-      case "rojas":
-        return f.rojas;
-      case "convocados":
-        return f.convocados;
-      default:
-        return f.ausentes;
-    }
-  });
   if (loading && !data) return <Loading />;
   if (error && !data) return <ErrorMsg error={error} onRetry={refresh} />;
   if (!data || data.length === 0) return <Empty texto="Sin datos." />;
   return (
     <Card className="overflow-x-auto p-2">
-      <table className="w-full text-sm text-neutral-800">
-        <thead>
-          <tr>
-            <SortTH col="nombre" label="Jugador" orden={orden.orden} onOrdenar={orden.alternar} align="left" />
-            <SortTH col="pj" label="PJ" orden={orden.orden} onOrdenar={orden.alternar} />
-            <SortTH col="pg" label="PG" orden={orden.orden} onOrdenar={orden.alternar} />
-            <SortTH col="pe" label="PE" orden={orden.orden} onOrdenar={orden.alternar} />
-            <SortTH col="pp" label="PP" orden={orden.orden} onOrdenar={orden.alternar} />
-            <SortTH col="rend" label="%" hint="% de rendimiento" orden={orden.orden} onOrdenar={orden.alternar} />
-            <SortTH col="goles" label="Goles" orden={orden.orden} onOrdenar={orden.alternar} />
-            <SortTH col="autogoles" label="Autogoles" orden={orden.orden} onOrdenar={orden.alternar} />
-            <SortTH col="amarillas" label="TA" orden={orden.orden} onOrdenar={orden.alternar} />
-            <SortTH col="rojas" label="TR" orden={orden.orden} onOrdenar={orden.alternar} />
-            <SortTH col="convocados" label="Convocado" orden={orden.orden} onOrdenar={orden.alternar} />
-            <SortTH col="ausentes" label="Ausencias" orden={orden.orden} onOrdenar={orden.alternar} />
-          </tr>
-        </thead>
-        <tbody>
-          {orden.filas.map((f) => (
-            <tr key={f.jugadorId} className="border-t border-neutral-300">
-              <td className="p-2 text-left">{f.nombre}</td>
-              <td className="p-2 text-center">{f.pj}</td>
-              <td className="p-2 text-center">{f.pg}</td>
-              <td className="p-2 text-center">{f.pe}</td>
-              <td className="p-2 text-center">{f.pp}</td>
-              <td className="p-2 text-center tabular-nums">{rendimiento(f.pg, f.pe, f.pj)}</td>
-              <td className="p-2 text-center font-bold">{f.goles}</td>
-              <td className="p-2 text-center">{f.autogoles}</td>
-              <td className="p-2 text-center">{f.amarillas}</td>
-              <td className="p-2 text-center">{f.rojas}</td>
-              <td className="p-2 text-center">{f.convocados}</td>
-              <td className="p-2 text-center">{f.ausentes}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <TablaJugadores filas={data} />
     </Card>
   );
 }
