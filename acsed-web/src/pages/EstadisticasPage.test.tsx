@@ -42,11 +42,11 @@ describe("EstadisticasPage jugadores", () => {
 
     const filaJuan = screen.getByText("Juan").closest("tr") as HTMLElement;
     const celdas = [...filaJuan.querySelectorAll("td")].map((td) => td.textContent);
-    expect(celdas).toMatchObject(["Juan", "3", "2", "0", "1", "66.7", "4", "0", "1", "0", "3", "0"]);
+    expect(celdas).toMatchObject(["+Juan", "3", "2", "0", "1", "66.7", "4", "0", "1", "0", "3", "0"]);
 
     await user.click(screen.getAllByTitle("% de rendimiento")[0] as HTMLElement);
-    const nombres = screen.getAllByText(/^(Juan|Pedro)$/).map((e) => e.textContent);
-    expect(nombres[0]).toBe("Juan");
+    const nombres = screen.getAllByText(/^\+?(Juan|Pedro)$/).map((e) => e.textContent);
+    expect(nombres[0]).toBe("+Juan");
     vi.unstubAllGlobals();
   });
 
@@ -66,7 +66,7 @@ describe("EstadisticasPage jugadores", () => {
     expect(screen.getByText("TR")).toBeInTheDocument();
     const filaJuan = screen.getByText("Juan").closest("tr") as HTMLElement;
     const celdas = [...filaJuan.querySelectorAll("td")].map((td) => td.textContent);
-    expect(celdas).toMatchObject(["Juan", "3", "2", "0", "1", "66.7", "4", "0", "1", "0", "3", "0"]);
+    expect(celdas).toMatchObject(["+Juan", "3", "2", "0", "1", "66.7", "4", "0", "1", "0", "3", "0"]);
     vi.unstubAllGlobals();
   });
 

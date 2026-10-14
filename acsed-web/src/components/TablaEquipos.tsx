@@ -15,7 +15,7 @@ export function TablaEquipos({ filas, orden, nombreDe }: {
   nombreDe: (f: FilaEquipo) => string;
 }): JSX.Element {
   const [expandida, setExpandida] = useState<Record<string, boolean>>({});
-  const extra = "hidden md:table-cell";
+  const extra = "hidden sm:table-cell";
   return (
     <table className="w-full text-sm text-neutral-800">
       <thead>
@@ -42,9 +42,9 @@ export function TablaEquipos({ filas, orden, nombreDe }: {
                   aria-expanded={expandida[f.equipoId] === true}
                   aria-label={`Detalle de ${nombreDe(f)}`}
                   onClick={() => { setExpandida((prev) => ({ ...prev, [f.equipoId]: !(prev[f.equipoId] === true) })); }}
-                  className="min-h-11 flex items-center gap-1 md:pointer-events-none text-left"
+                  className="min-h-11 flex items-center gap-1 sm:pointer-events-none text-left"
                 >
-                  <span aria-hidden="true" className="md:hidden text-cancha-600 font-bold">
+                  <span aria-hidden="true" className="sm:hidden text-cancha-600 font-bold">
                     {expandida[f.equipoId] === true ? "−" : "+"}
                   </span>
                   {nombreDe(f)}
@@ -61,7 +61,7 @@ export function TablaEquipos({ filas, orden, nombreDe }: {
               <td className="p-2 text-center font-bold">{f.pts}</td>
             </tr>
             {expandida[f.equipoId] === true ? (
-              <tr className="md:hidden border-t border-stone-100">
+              <tr className="sm:hidden border-t border-stone-100">
                 <td colSpan={5} className="p-2 text-sm text-stone-600">
                   PG {f.pg} · PE {f.pe} · PP {f.pp} · GF {f.gf} · GC {f.gc}
                 </td>

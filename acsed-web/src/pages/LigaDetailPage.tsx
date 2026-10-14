@@ -8,7 +8,7 @@ import { useSession } from "../auth/Session";
 import { useMapaEquipos } from "../hooks/useNombres";
 import { porFechaDesc } from "../hooks/orden";
 import { useOrden } from "../hooks/useOrden";
-import { rendimiento, rendimientoValor } from "../utils/rendimiento";
+import { rendimientoValor } from "../utils/rendimiento";
 import { usePolling } from "../hooks/usePolling";
 import { PartidoCard } from "../components/PartidoCard";
 import { TablaEquipos } from "../components/TablaEquipos";

@@ -31,5 +31,5 @@ export default tseslint.config(
       "@typescript-eslint/no-confusing-void-expression": "off",
     },
   },
-  { ignores: ["dist/**", "node_modules/**"] },
+  { ignores: ["dist/**", "node_modules/**", "src/**/*.test.{ts,tsx}", "src/test/**/*"] },
 );

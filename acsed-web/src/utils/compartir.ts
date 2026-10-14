@@ -20,14 +20,14 @@ function bloqueGoles(eventos: Evento[], jugadores: Map<string, string>): string[
       bN - aN || (jugadores.get(aId) ?? "?").localeCompare(jugadores.get(bId) ?? "?"),
     );
     const lineas = ordenados.map(
-      ([jugadorId, n]) => `- ${jugadores.get(jugadorId) ?? "?"} ${n} ${n === 1 ? "gol" : "goles"}`,
+      ([jugadorId, n]) => `- ${jugadores.get(jugadorId) ?? "?"} ${n.toString()} ${n === 1 ? "gol" : "goles"}`,
     );
     return ["Goleadores:", ...lineas];
   }
   const porJugador = new Map<string, string[]>();
   for (const e of goles) {
     const minutos = porJugador.get(e.jugadorId) ?? [];
-    if (e.minuto !== null) minutos.push(`${e.minuto}'${SUFIJO[e.tipo]}`);
+    if (e.minuto !== null) minutos.push(`${e.minuto.toString()}'${SUFIJO[e.tipo]}`);
     porJugador.set(e.jugadorId, minutos);
   }
   const lineas = [...porJugador.entries()].map(([jugadorId, minutos]) => {
@@ -43,13 +43,13 @@ export function textoResultado(detalle: PartidoDetalle, nombres: NombresComparti
   const local = (nombres.equipos.get(detalle.localId) ?? "?").toUpperCase();
   const visita = (nombres.equipos.get(detalle.visitaId) ?? "?").toUpperCase();
   const lineas = [
-    `${local} ${detalle.marcador.local} - ${detalle.marcador.visita} ${visita}`,
+    `${local} ${detalle.marcador.local.toString()} - ${detalle.marcador.visita.toString()} ${visita}`,
     `${nombres.liga} · ${formatoFechaCorta(detalle.fecha)}`,
     "",
     ...bloqueGoles(detalle.eventos, nombres.jugadores),
   ];
   if (detalle.penalesLocal !== null && detalle.penalesVisita !== null) {
-    lineas.push("", `Penales: ${detalle.penalesLocal} - ${detalle.penalesVisita}`);
+    lineas.push("", `Penales: ${detalle.penalesLocal.toString()} - ${detalle.penalesVisita.toString()}`);
   }
   lineas.push("", `${origin}/partidos/${detalle.id}`);
   return lineas.join("\n");

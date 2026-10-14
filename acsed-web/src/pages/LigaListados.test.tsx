@@ -313,7 +313,7 @@ describe("empty con accion", () => {
     expect(await screen.findByText("66.7")).toBeInTheDocument();
     const fila = screen.getByText("Juan").closest("tr") as HTMLElement;
     const celdas = [...fila.querySelectorAll("td")].map((td) => td.textContent);
-    expect(celdas).toMatchObject(["Juan", "3", "2", "0", "1", "66.7", "4", "0", "1", "0", "3", "0"]);
+    expect(celdas).toMatchObject(["+Juan", "3", "2", "0", "1", "66.7", "4", "0", "1", "0", "3", "0"]);
     vi.unstubAllGlobals();
   });
 });

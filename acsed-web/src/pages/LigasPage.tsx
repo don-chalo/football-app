@@ -20,7 +20,7 @@ function FilaEnJuego({ p, nombre }: { p: PartidoListado; nombre: (id: string) =>
             {nombre(p.localId)} {p.marcador.local} - {p.marcador.visita} {nombre(p.visitaId)}
           </span>
           <span className="shrink-0 text-sm font-bold text-cancha-700 tabular-nums">
-            {minuto !== null ? `${minuto}'` : "–"}
+            {minuto !== null ? `${minuto.toString()}'` : "–"}
           </span>
         </div>
       </Card>
@@ -39,6 +39,7 @@ function usePartidosTodas(ligas: Liga[] | null): PartidoListado[] {
     let vivo = true;
     void (async () => {
       const rs = await Promise.allSettled(ligas.map((l) => services.partidos.porLiga(l.id)));
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- el cleanup asigna vivo=false tras el await; la regla no cruza la frontera async
       if (vivo) setPartidos(rs.flatMap((r) => (r.status === "fulfilled" ? r.value : [])));
     })();
     return () => {

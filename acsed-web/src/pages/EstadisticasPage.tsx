@@ -2,13 +2,13 @@ import { useState, type JSX } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import * as Tabs from "@radix-ui/react-tabs";
 import { services } from "../api/services";
-import type { FilaEquipo, FilaJugador } from "../api/types";
+import type { FilaEquipo } from "../api/types";
 import { Button, Card, Empty, ErrorMsg, Input, Loading, Title } from "../components/ui";
 import { TablaEquipos as TablaPosiciones } from "../components/TablaEquipos";
 import { TablaJugadores } from "../components/TablaJugadores";
 import { usePolling } from "../hooks/usePolling";
 import { useOrden } from "../hooks/useOrden";
-import { rendimiento, rendimientoValor } from "../utils/rendimiento";
+import { rendimientoValor } from "../utils/rendimiento";
 import { Tab } from "../components/Tab";
 
 function anoActual(): { desde: string; hasta: string } {
