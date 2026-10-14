@@ -75,13 +75,13 @@ describe("CargaVivo compacta", () => {
     { id: "c3", partidoId: "p", jugadorId: "j3", equipoId: "e1", estado: "convocado", createdBy: null, createdAt: null },
   ];
   const nombres: Record<string, string> = { j1: "Juan", j2: "Pedro", j3: "Luis", e1: "Los Pibes" };
-  const evento = (id: string, jugadorId: string, tipo: Evento["tipo"]): Evento => ({
+  const evento = (id: string, jugadorId: string, tipo: Evento["tipo"], minuto: number | null = null): Evento => ({
     id,
     partidoId: "p",
     jugadorId,
     equipoId: "e1",
     tipo,
-    minuto: null,
+    minuto,
     createdBy: null,
     createdAt: null,
   });
@@ -178,6 +178,33 @@ describe("CargaVivo compacta", () => {
     );
     expect(screen.queryByRole("button", { name: "Quitar gol de Juan" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Quitar gol de Pedro" })).toBeInTheDocument();
+    vi.unstubAllGlobals();
+  });
+
+  it("quitar muestra el minuto del gol cuando existe", async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal("fetch", mockDetalle());
+    render(
+      <CargaVivo
+        partidoId="p"
+        estadoPartido="en_juego"
+        localId="e1"
+        visitaId="e2"
+        minutoAuto={null}
+        inicioEn={null}
+        finEn={null}
+        minutoFin={null}
+        convocatorias={convocados}
+        eventos={[evento("ev1", "j1", "gol", 23), evento("ev2", "j1", "penal")]}
+        nombreJugador={(id) => nombres[id] ?? id}
+        nombreEquipo={() => "Los Pibes"}
+        onCambio={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Quitar gol de Juan" }));
+    expect(screen.getByText("Quitar gol de Juan")).toBeInTheDocument();
+    expect(screen.getByText(/23'/)).toBeInTheDocument();
     vi.unstubAllGlobals();
   });
 

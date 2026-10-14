@@ -50,6 +50,12 @@ function mockFetch(det: PartidoDetalle) {
         { status: 200 },
       );
     }
+    if (u.endsWith("/ligas/l1")) {
+      return new Response(
+        JSON.stringify({ id: "l1", nombre: "Apertura", formato: "liga", idaVuelta: false, createdBy: null, createdAt: null }),
+        { status: 200 },
+      );
+    }
     return new Response("[]", { status: 200 });
   });
 }
@@ -113,6 +119,47 @@ describe("convocatoria en detalle", () => {
     renderDetalle();
     expect(await screen.findByText("Juan")).toBeInTheDocument();
     expect(screen.getByText("Sin jugadores.")).toBeInTheDocument();
+    vi.unstubAllGlobals();
+  });
+});
+
+describe("compartir por WhatsApp", () => {
+  beforeEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  function finalizado(): PartidoDetalle {
+    return {
+      ...detalle([]),
+      estado: "finalizado",
+      marcador: { local: 2, visita: 1 },
+      eventos: [
+        { id: "e1", partidoId: "p1", jugadorId: "j1", equipoId: "e1", tipo: "gol", minuto: 23, createdBy: null, createdAt: null },
+        { id: "e2", partidoId: "p1", jugadorId: "j2", equipoId: "e2", tipo: "gol", minuto: 67, createdBy: null, createdAt: null },
+      ],
+    };
+  }
+
+  it("en finalizado muestra botón con enlace wa.me", async () => {
+    vi.stubGlobal("fetch", mockFetch(finalizado()));
+    renderDetalle();
+
+    const btn = await screen.findByRole("link", { name: "Compartir por WhatsApp" });
+    const href = btn.getAttribute("href") ?? "";
+    expect(href.startsWith("https://wa.me/?text=")).toBe(true);
+    expect(href).toContain(encodeURIComponent("ALFA 2 - 1 BETA"));
+    expect(btn.getAttribute("target")).toBe("_blank");
+    expect(btn.querySelector("svg")).not.toBeNull();
+    expect(btn.closest("div.flex.items-center.justify-between")?.textContent).toContain("Fecha de juego:");
+    vi.unstubAllGlobals();
+  });
+
+  it("en juego no muestra el botón", async () => {
+    vi.stubGlobal("fetch", mockFetch(detalle([])));
+    renderDetalle();
+
+    expect(await screen.findByText("Cronología")).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Compartir por WhatsApp" })).not.toBeInTheDocument();
     vi.unstubAllGlobals();
   });
 });

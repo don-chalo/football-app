@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import * as _ from "lodash";
 import { services } from "../api/services";
 import { Badge, Card, Empty, ErrorMsg, Loading, Title, tonoPorEstado } from "../components/ui";
+import { BotonCompartir } from "../components/BotonCompartir";
 import { minutoDePartido } from "../hooks/useCronometro";
 import { useMapaEquipos, useMapaJugadores } from "../hooks/useNombres";
 import { usePolling } from "../hooks/usePolling";
@@ -64,6 +65,7 @@ export function PartidoPage(): JSX.Element {
             {formatoFechaCorta(data.fecha)}
           </span>
         </p>
+        <BotonCompartir detalle={data} mapaEquipos={mapaEquipos} mapaJugadores={mapaJugadores} />
       </div>
         {/* <ActorLine createdBy={data.createdBy} createdAt={data.createdAt} /> */}
       <Card className="text-neutral-800">

@@ -7,7 +7,7 @@ Ficha publica de partidos con marcador calculado y auto-refresco para seguir res
 ## Requirements
 
 ### Requirement: Lista y ficha de partido
-The system SHALL list partidos (filterable by liga and estado) and show a public match view with equipos, fecha, fase, estado, calculated marcador, convocatoria por equipo, shootout if present, and goal list. Each row in the public partido list SHALL display the calculated local and visiting goal totals alongside the equipos, stacked (equipos one per line, large marcador at right, fase/fecha/badge on a second line). The liga fixture SHALL offer estado filter chips (Todos | En juego | Programados | Finalizados | Suspendidos) keeping date order. The public partido detail SHALL display a `Convocatoria` section above `Goleadores`, with local and visiting equipos in two columns; ausente players SHALL remain visible, subdued and marked as ausente.
+The system SHALL list partidos (filterable by liga and estado) and show a public match view with equipos, fecha, fase, estado, calculated marcador, convocatoria por equipo, shootout if present, and goal list. Each row in the public partido list SHALL display the calculated local and visiting goal totals alongside the equipos, stacked (equipos one per line, large marcador at right, fase/fecha/badge on a second line). The liga fixture SHALL offer estado filter chips (Todos | En juego | Programados | Finalizados | Suspendidos) keeping date order. The public partido detail SHALL display a `Convocatoria` section above `Goleadores`, with local and visiting equipos in two columns; ausente players SHALL remain visible, subdued and marked as ausente. A finished partido (finalizado) SHALL show a WhatsApp share icon-link at the right end of the match-date row, opening `https://wa.me/?text=<encoded>` with the formatted resultado: `LOCAL {l} - {v} VISITA` line, `{Liga/Copa} · {fecha}` line, goals (`Goles:` with grouped minutes and `(p)`/`(ag)` suffixes, or `Goleadores:` with counts ordered descending when no event has a minute, `Penales:` line when shootout exists, `Sin goles.` for 0-0), and a back-link to the partido. The button SHALL NOT appear on non-finished partidos.
 
 #### Scenario: Visitor opens match
 - **WHEN** a visitor opens `/partidos/:id`
@@ -32,6 +32,10 @@ The system SHALL list partidos (filterable by liga and estado) and show a public
 #### Scenario: Filter fixture by estado
 - **WHEN** a visitor selects "En juego" in the fixture filter
 - **THEN** only `en_juego` partidos are listed, still ordered by fecha.
+
+#### Scenario: Share finished match on WhatsApp
+- **WHEN** a visitor opens a finalizado `/partidos/:id` and activates Compartir
+- **THEN** `wa.me` opens with the formatted resultado (marcador, liga/fecha, goles, back-link); on non-finished partidos the button is absent.
 
 ### Requirement: Auto-refresh polling
 Public match views SHALL re-fetch every 10–15s (fixed), pause when the tab is hidden, and refresh immediately after the viewer's own admin mutation.

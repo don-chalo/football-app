@@ -326,6 +326,7 @@ export function CargaVivo({ partidoId, estadoPartido, localId, visitaId, convoca
                   <li key={e.id} className="flex items-center justify-between bg-white border border-stone-200 rounded-lg px-3 min-h-11">
                     <span className="text-sm">
                       {nombreJugador(e.jugadorId)} · <Badge>{e.tipo}</Badge>
+                      {e.minuto !== null ? ` ${e.minuto}'` : ""}
                     </span>
                     <button
                       type="button"

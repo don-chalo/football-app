@@ -46,6 +46,12 @@ function mockFetch() {
     if (u.endsWith("/jugadores")) {
       return new Response(JSON.stringify([{ id: "j1", nombre: "Juan" }]), { status: 200 });
     }
+    if (u.endsWith("/ligas/l1")) {
+      return new Response(
+        JSON.stringify({ id: "l1", nombre: "Apertura", formato: "liga", idaVuelta: false, createdBy: null, createdAt: null }),
+        { status: 200 },
+      );
+    }
     return new Response("[]", { status: 200 });
   });
 }
@@ -223,6 +229,60 @@ describe("finalizar con confirmacion", () => {
     });
     const [, init] = fetchMock.mock.calls.find(([, i]) => (i as RequestInit | undefined)?.method === "PATCH") as unknown as [string, RequestInit];
     expect(JSON.parse(init.body as string) as unknown).toMatchObject({ estado: "finalizado" });
+    vi.unstubAllGlobals();
+  });
+});
+
+describe("compartir por WhatsApp en gestión", () => {
+  beforeEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("en finalizado muestra botón con enlace wa.me", async () => {
+    const fetchMock = vi.fn(async (url: unknown): Promise<Response> => {
+      const u = String(url);
+      if (u.endsWith("/partidos/p1")) {
+        return new Response(
+          JSON.stringify({
+            ...detalle,
+            estado: "finalizado",
+            marcador: { local: 2, visita: 1 },
+            eventos: [
+              { id: "e1", partidoId: "p1", jugadorId: "j1", equipoId: "e1", tipo: "gol", minuto: 23, createdBy: null, createdAt: null },
+            ],
+          }),
+          { status: 200 },
+        );
+      }
+      if (u.endsWith("/equipos")) {
+        return new Response(JSON.stringify([{ id: "e1", nombre: "Alfa" }, { id: "e2", nombre: "Beta" }]), { status: 200 });
+      }
+      if (u.endsWith("/jugadores")) {
+        return new Response(JSON.stringify([{ id: "j1", nombre: "Juan" }]), { status: 200 });
+      }
+      if (u.endsWith("/ligas/l1")) {
+        return new Response(
+          JSON.stringify({ id: "l1", nombre: "Apertura", formato: "liga", idaVuelta: false, createdBy: null, createdAt: null }),
+          { status: 200 },
+        );
+      }
+      return new Response("[]", { status: 200 });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    renderPage();
+
+    const btn = await screen.findByRole("link", { name: "Compartir por WhatsApp" });
+    expect(btn.getAttribute("href") ?? "").toContain("https://wa.me/?text=");
+    expect(btn.querySelector("svg")).not.toBeNull();
+    expect(btn.closest("div.flex.items-center.justify-between")?.textContent).toContain("Fecha de juego:");
+    vi.unstubAllGlobals();
+  });
+
+  it("en programado no muestra el botón", async () => {
+    vi.stubGlobal("fetch", mockFetch());
+    renderPage();
+    expect(await screen.findByText("Convocatoria y goles")).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Compartir por WhatsApp" })).not.toBeInTheDocument();
     vi.unstubAllGlobals();
   });
 });

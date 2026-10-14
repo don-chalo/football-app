@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { mensajeError } from "../api/client";
 import { services } from "../api/services";
 import type { EstadoPartido } from "../api/types";
+import { BotonCompartir } from "../components/BotonCompartir";
 import { CargaVivo } from "../components/CargaVivo";
 import { Cronometro } from "../components/Cronometro";
 import { Badge, Button, Card, Empty, ErrorMsg, Input, SkeletonFilas, Title, tonoPorEstado } from "../components/ui";
@@ -47,6 +48,7 @@ export function PartidoManagePage(): JSX.Element {
             {formatoFechaCorta(p.fecha)}
           </span>
         </p>
+        <BotonCompartir detalle={p} mapaEquipos={mapaEquipos} mapaJugadores={mapaJugadores} />
       </div>
         {/* <ActorLine createdBy={p.createdBy} createdAt={p.createdAt} /> */}
       <EstadoBotones id={p.id} estado={p.estado} fecha={p.fecha} onCambio={detalle.refresh} />
