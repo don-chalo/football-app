@@ -1,5 +1,5 @@
 import { useState, type JSX } from "react";
-import { Link, NavLink, Route, Routes, useNavigate } from "react-router-dom";
+import { Link, Navigate, NavLink, Route, Routes, useNavigate } from "react-router-dom";
 import { SessionProvider, useSession } from "./auth/Session";
 import { RequireAdmin } from "./auth/guards";
 import { AdminHomePage } from "./pages/AdminHomePage";
@@ -174,9 +174,11 @@ export function App(): JSX.Element {
           <Route path="/" element={<LigasPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/ligas" element={<LigasPage />} />
-          <Route path="/ligas/:id" element={<LigaDetailPage />} />
+          <Route path="/ligas/:id" element={<Navigate to="partidos" replace />} />
+          <Route path="/ligas/:id/:tab" element={<LigaDetailPage />} />
           <Route path="/partidos/:id" element={<PartidoPage />} />
-          <Route path="/estadisticas" element={<EstadisticasPage />} />
+          <Route path="/estadisticas" element={<Navigate to="/estadisticas/equipos" replace />} />
+          <Route path="/estadisticas/:tab" element={<EstadisticasPage />} />
           <Route path="/admin" element={<RequireAdmin><AdminHomePage /></RequireAdmin>} />
           <Route path="/admin/gestion" element={<RequireAdmin><GestionPage /></RequireAdmin>} />
           <Route path="/admin/ligas/:id" element={<RequireAdmin><LigaManagePage /></RequireAdmin>} />

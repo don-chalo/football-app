@@ -28,7 +28,7 @@ describe("TablaEquipos responsive", () => {
     expect(screen.queryByText(/PG 3 · PE 1/)).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Detalle de Alfa" }));
-    expect(screen.getByText("PG 3 · PE 1 · PP 1 · GF 10 · GC 4 · % 66.7")).toBeInTheDocument();
+    expect(screen.getByText("PG 3 · PE 1 · PP 1 · GF 10 · GC 4")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Detalle de Alfa" }));
     expect(screen.queryByText(/PG 3 · PE 1/)).not.toBeInTheDocument();

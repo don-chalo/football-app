@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
 import { EstadisticasPage } from "./EstadisticasPage";
 import type { FilaJugador } from "../api/types";
@@ -27,7 +28,13 @@ describe("EstadisticasPage jugadores", () => {
   it("muestra % a la derecha de PP y ordena por rendimiento", async () => {
     const user = userEvent.setup();
     vi.stubGlobal("fetch", mockFetch());
-    render(<EstadisticasPage />);
+    render(
+      <MemoryRouter initialEntries={["/estadisticas/equipos"]}>
+        <Routes>
+          <Route path="/estadisticas/:tab" element={<EstadisticasPage />} />
+        </Routes>
+      </MemoryRouter>,
+    );
 
     await user.click(screen.getByText("Jugadores"));
     expect(await screen.findByText("66.7")).toBeInTheDocument();
@@ -40,6 +47,20 @@ describe("EstadisticasPage jugadores", () => {
     await user.click(screen.getAllByTitle("% de rendimiento")[0] as HTMLElement);
     const nombres = screen.getAllByText(/^(Juan|Pedro)$/).map((e) => e.textContent);
     expect(nombres[0]).toBe("Juan");
+    vi.unstubAllGlobals();
+  });
+
+  it("carga directa de /duelo muestra el duelo sin clicks", async () => {
+    vi.stubGlobal("fetch", mockFetch());
+    render(
+      <MemoryRouter initialEntries={["/estadisticas/duelo"]}>
+        <Routes>
+          <Route path="/estadisticas/:tab" element={<EstadisticasPage />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText("Ver duelo")).toBeInTheDocument();
     vi.unstubAllGlobals();
   });
 });

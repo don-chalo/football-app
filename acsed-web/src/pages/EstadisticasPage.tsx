@@ -1,4 +1,5 @@
 import { useState, type JSX } from "react";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
 import * as Tabs from "@radix-ui/react-tabs";
 import { services } from "../api/services";
 import type { FilaEquipo, FilaJugador } from "../api/types";
@@ -15,14 +16,25 @@ function anoActual(): { desde: string; hasta: string } {
   return { desde: `${String(y)}-01-01`, hasta: `${String(y)}-12-31` };
 }
 
+const TABS = ["equipos", "jugadores", "duelo"] as const;
+type Tab = (typeof TABS)[number];
+
+function esTab(v: string): v is Tab {
+  return (TABS as readonly string[]).includes(v);
+}
+
 export function EstadisticasPage(): JSX.Element {
-  const [tab, setTab] = useState<"equipos" | "jugadores" | "duelo">("equipos");
+  const { tab: tabParam = "equipos" } = useParams();
+  const navigate = useNavigate();
+
+  if (!esTab(tabParam)) return <Navigate to="/estadisticas/equipos" replace />;
+  const tab: Tab = tabParam;
   return (
     <div className="flex flex-col gap-2">
       <Title>
         <h1 className="text-xl font-bold">ESTADÍSTICAS</h1>
       </Title>
-      <Tabs.Tabs defaultValue="equipos" onValueChange={(v) => { setTab(v as "equipos" | "jugadores" | "duelo"); }}>
+      <Tabs.Tabs value={tab} onValueChange={(v) => { navigate(`/estadisticas/${v}`); }}>
         <Tabs.List className="w-full flex justify-around mb-2">
           <Tab value="equipos" label="Equipos" selected={tab === "equipos"} />
           <Tab value="jugadores" label="Jugadores" selected={tab === "jugadores"} />

@@ -80,7 +80,7 @@ describe("resultado en listados", () => {
       <MemoryRouter initialEntries={["/ligas/l1"]}>
         <SessionProvider>
           <Routes>
-            <Route path="/ligas/:id" element={<LigaDetailPage />} />
+            <Route path="/ligas/:id/:tab?" element={<LigaDetailPage />} />
           </Routes>
         </SessionProvider>
       </MemoryRouter>,
@@ -94,6 +94,23 @@ describe("resultado en listados", () => {
     vi.unstubAllGlobals();
   });
 
+  it("tab inválida redirige a partidos", async () => {
+    vi.stubGlobal("fetch", mockFetch("liga"));
+    render(
+      <MemoryRouter initialEntries={["/ligas/l1/pepito"]}>
+        <SessionProvider>
+          <Routes>
+            <Route path="/ligas/:id" element={<LigaDetailPage />} />
+            <Route path="/ligas/:id/:tab?" element={<LigaDetailPage />} />
+          </Routes>
+        </SessionProvider>
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText("Alfa")).toBeInTheDocument();
+    vi.unstubAllGlobals();
+  });
+
   it("llaves de copa muestran el marcador sin abrir el detalle", async () => {
     const user = userEvent.setup();
     const fetchMock = mockFetch("copa");
@@ -102,7 +119,7 @@ describe("resultado en listados", () => {
       <MemoryRouter initialEntries={["/ligas/l1"]}>
         <SessionProvider>
           <Routes>
-            <Route path="/ligas/:id" element={<LigaDetailPage />} />
+            <Route path="/ligas/:id/:tab?" element={<LigaDetailPage />} />
           </Routes>
         </SessionProvider>
       </MemoryRouter>,
@@ -164,7 +181,7 @@ describe("partido suspendido", () => {
       <MemoryRouter initialEntries={["/ligas/l1"]}>
         <SessionProvider>
           <Routes>
-            <Route path="/ligas/:id" element={<LigaDetailPage />} />
+            <Route path="/ligas/:id/:tab?" element={<LigaDetailPage />} />
           </Routes>
         </SessionProvider>
       </MemoryRouter>,
@@ -207,7 +224,7 @@ describe("filtro por estado en fixture", () => {
       <MemoryRouter initialEntries={["/ligas/l1"]}>
         <SessionProvider>
           <Routes>
-            <Route path="/ligas/:id" element={<LigaDetailPage />} />
+            <Route path="/ligas/:id/:tab?" element={<LigaDetailPage />} />
           </Routes>
         </SessionProvider>
       </MemoryRouter>,
@@ -251,7 +268,7 @@ describe("empty con accion", () => {
       <MemoryRouter initialEntries={["/ligas/l1"]}>
         <SessionProvider>
           <Routes>
-            <Route path="/ligas/:id" element={<LigaDetailPage />} />
+            <Route path="/ligas/:id/:tab?" element={<LigaDetailPage />} />
           </Routes>
         </SessionProvider>
       </MemoryRouter>,
@@ -267,7 +284,7 @@ describe("empty con accion", () => {
       <MemoryRouter initialEntries={["/ligas/l1"]}>
         <SessionProvider>
           <Routes>
-            <Route path="/ligas/:id" element={<LigaDetailPage />} />
+            <Route path="/ligas/:id/:tab?" element={<LigaDetailPage />} />
           </Routes>
         </SessionProvider>
       </MemoryRouter>,

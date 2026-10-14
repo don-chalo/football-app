@@ -1,5 +1,5 @@
 import { useState, type JSX } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import { services } from "../api/services";
 import type { FilaEquipo } from "../api/types";
 import type { PartidoListado } from "../api/partidos";
@@ -16,14 +16,21 @@ import { TablaEquipos } from "../components/TablaEquipos";
 import * as Tabs from "@radix-ui/react-tabs";
 import { Tab } from "../components/Tab";
 
-type Tab = "partidos" | "tabla" | "jugadores";
+const TABS = ["partidos", "tabla", "jugadores"] as const;
+type Tab = (typeof TABS)[number];
+
+function esTab(v: string): v is Tab {
+  return (TABS as readonly string[]).includes(v);
+}
 
 export function LigaDetailPage(): JSX.Element {
-  const { id = "" } = useParams();
-  const [tab, setTab] = useState<Tab>("partidos");
+  const { id = "", tab: tabParam = "partidos" } = useParams();
+  const navigate = useNavigate();
   const liga = usePolling(() => services.ligas.obtener(id), 15_000);
   const mapaEquipos = useMapaEquipos();
 
+  if (!esTab(tabParam)) return <Navigate to={`/ligas/${id}/partidos`} replace />;
+  const tab: Tab = tabParam;
   if (liga.loading && !liga.data) return <Loading />;
   if (liga.error && !liga.data) return <ErrorMsg error={liga.error} onRetry={liga.refresh} />;
   if (!liga.data) return <Empty texto="Liga no encontrada." />;
@@ -36,7 +43,7 @@ export function LigaDetailPage(): JSX.Element {
         <h1 className="text-xl font-bold mr-2">{l.nombre.toUpperCase()}</h1>
         <Badge>{esCopa ? "Copa" : "Liga"}</Badge>
       </Title>
-      <Tabs.Tabs defaultValue="partidos" onValueChange={(v) => { setTab(v as Tab); }}>
+      <Tabs.Tabs value={tab} onValueChange={(v) => { navigate(`/ligas/${id}/${v}`); }}>
         <Tabs.List className="w-full flex justify-around mb-2">
           <Tab value="partidos" label="Partidos" selected={tab === "partidos"} />
           <Tab value="tabla" label={esCopa ? "Llaves" : "Tabla"} selected={tab === "tabla"} />

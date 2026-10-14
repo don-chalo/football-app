@@ -63,7 +63,7 @@ export function TablaEquipos({ filas, orden, nombreDe }: {
             {expandida[f.equipoId] === true ? (
               <tr className="md:hidden border-t border-stone-100">
                 <td colSpan={5} className="p-2 text-sm text-stone-600">
-                  PG {f.pg} · PE {f.pe} · PP {f.pp} · GF {f.gf} · GC {f.gc} · % {rendimiento(f.pg, f.pe, f.pj)}
+                  PG {f.pg} · PE {f.pe} · PP {f.pp} · GF {f.gf} · GC {f.gc}
                 </td>
               </tr>
             ) : null}
