@@ -6,7 +6,7 @@ export interface CreatedBy {
 export type Role = "admin_partidos" | "admin_usuarios";
 export type Formato = "liga" | "copa";
 export type EstadoPartido = "programado" | "en_juego" | "finalizado" | "suspendido";
-export type TipoEvento = "gol" | "autogol" | "penal";
+export type TipoEvento = "gol" | "autogol" | "penal" | "amarilla" | "roja";
 
 export interface PublicUser {
   id: string;
@@ -105,6 +105,8 @@ export interface FilaJugador {
   pp: number;
   goles: number;
   autogoles: number;
+  amarillas: number;
+  rojas: number;
   convocados: number;
   ausentes: number;
   inasistencia: number;

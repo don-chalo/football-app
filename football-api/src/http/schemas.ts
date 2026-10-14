@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { TIPOS_EVENTO } from "../domain/types";
 
 export const objectId = z.string().regex(/^[0-9a-fA-F]{24}$/, "Id invalido");
 export const nombre = z.string().trim().min(1, "Nombre requerido").max(120);
@@ -53,7 +54,7 @@ export const convocatoriaPatchSchema = z.object({ estado: z.enum(["convocado", "
 export const eventoSchema = z.object({
   jugadorId: objectId,
   equipoId: objectId,
-  tipo: z.enum(["gol", "autogol", "penal"]),
+  tipo: z.enum(TIPOS_EVENTO),
   minuto: z.number().int().min(0).nullable().optional(),
   metadata: z.unknown().optional(),
 });

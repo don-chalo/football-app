@@ -66,6 +66,83 @@ describe("CargaVivo flujo crítico 2 taps", () => {
     expect(onCambio).toHaveBeenCalled();
     vi.unstubAllGlobals();
   });
+
+  it("tap T. AMARILLA registra tarjeta con toast propio", async () => {
+    const user = userEvent.setup();
+    const fetchMock = mockDetalle();
+    vi.stubGlobal("fetch", fetchMock);
+    const onCambio = vi.fn();
+
+    render(
+      <CargaVivo
+        partidoId="p"
+        estadoPartido="en_juego"
+        localId="e1"
+        visitaId="e2"
+        minutoAuto={null}
+        inicioEn={null}
+        finEn={null}
+        minutoFin={null}
+        convocatorias={conv}
+        eventos={[]}
+        nombreJugador={() => "Juan"}
+        nombreEquipo={() => "Los Pibes"}
+        onCambio={onCambio}
+      />,
+    );
+
+    await user.click(screen.getByText("Juan"));
+    expect(screen.getByText("GOL").closest("div.flex.gap-2")).not.toBeNull();
+    await user.click(screen.getByText("T. AMARILLA"));
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        expect.stringContaining("/partidos/p/eventos"),
+        expect.objectContaining({ method: "POST" }),
+      );
+    });
+    const [, init] = fetchMock.mock.calls.find(([, i]) => (i as RequestInit).method === "POST") as unknown as [string, RequestInit];
+    expect(JSON.parse(init.body as string) as unknown).toMatchObject({ jugadorId: "j1", equipoId: "e1", tipo: "amarilla" });
+    expect(await screen.findByText("Tarjeta registrada")).toBeInTheDocument();
+    expect(onCambio).toHaveBeenCalled();
+    vi.unstubAllGlobals();
+  });
+
+  it("cronología muestra pelota en gol y tarjeta con etiqueta accesible", async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal("fetch", mockDetalle());
+    const convocadosLocal: Convocatoria[] = [
+      { id: "c1", partidoId: "p", jugadorId: "j1", equipoId: "e1", estado: "convocado", createdBy: null, createdAt: null },
+      { id: "c2", partidoId: "p", jugadorId: "j2", equipoId: "e1", estado: "convocado", createdBy: null, createdAt: null },
+    ];
+    const ev = (id: string, jugadorId: string, tipo: Evento["tipo"], minuto: number | null): Evento => ({
+      id, partidoId: "p", jugadorId, equipoId: "e1", tipo, minuto, createdBy: null, createdAt: null,
+    });
+    render(
+      <CargaVivo
+        partidoId="p"
+        estadoPartido="en_juego"
+        localId="e1"
+        visitaId="e2"
+        minutoAuto={null}
+        inicioEn={null}
+        finEn={null}
+        minutoFin={null}
+        convocatorias={convocadosLocal}
+        eventos={[ev("ev1", "j1", "gol", 23), ev("ev2", "j2", "amarilla", 45)]}
+        nombreJugador={(id) => ({ j1: "Juan", j2: "Pedro" })[id] ?? id}
+        nombreEquipo={() => "Los Pibes"}
+        onCambio={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: /Cronología \(2\)/ }));
+    expect(screen.getByLabelText("Gol de Juan")).toBeInTheDocument();
+    expect(screen.getByLabelText("Tarjeta amarilla de Pedro")).toBeInTheDocument();
+    expect(screen.getByLabelText("Gol de Juan").querySelector("svg")).not.toBeNull();
+    expect(screen.getByLabelText("Tarjeta amarilla de Pedro").querySelector("svg")).not.toBeNull();
+    vi.unstubAllGlobals();
+  });
 });
 
 describe("CargaVivo compacta", () => {
@@ -208,6 +285,34 @@ describe("CargaVivo compacta", () => {
     vi.unstubAllGlobals();
   });
 
+  it("quitar tarjeta muestra texto sin iconos", async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal("fetch", mockDetalle());
+    render(
+      <CargaVivo
+        partidoId="p"
+        estadoPartido="en_juego"
+        localId="e1"
+        visitaId="e2"
+        minutoAuto={null}
+        inicioEn={null}
+        finEn={null}
+        minutoFin={null}
+        convocatorias={convocados}
+        eventos={[evento("ev1", "j1", "amarilla", 45)]}
+        nombreJugador={(id) => nombres[id] ?? id}
+        nombreEquipo={() => "Los Pibes"}
+        onCambio={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Quitar gol de Juan" }));
+    expect(screen.getByText(/T\. amarilla/)).toBeInTheDocument();
+    expect(screen.getByText(/45'/)).toBeInTheDocument();
+    expect(screen.getByLabelText("Borrar gol de Juan").closest("li")?.querySelector("svg")).toBeNull();
+    vi.unstubAllGlobals();
+  });
+
   it("sin botones anidados y controles con target táctil", () => {
     vi.stubGlobal("fetch", mockDetalle());
     const { container } = render(
@@ -256,10 +361,10 @@ describe("CargaVivo compacta", () => {
       />,
     );
 
-    expect(screen.queryByText("penal")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Penal de Pedro")).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /Cronología \(2\)/ }));
-    expect(await screen.findByText("penal")).toBeInTheDocument();
-    expect(screen.getByText("gol")).toBeInTheDocument();
+    expect(await screen.findByLabelText("Penal de Pedro")).toBeInTheDocument();
+    expect(screen.getByLabelText("Gol de Juan")).toBeInTheDocument();
     vi.unstubAllGlobals();
   });
 });

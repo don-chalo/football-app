@@ -3,16 +3,34 @@ import { Collapsible, Content, Trigger } from "@radix-ui/react-collapsible";
 import { mensajeError } from "../api/client";
 import { services } from "../api/services";
 import type { Convocatoria, EstadoPartido, Evento, TipoEvento } from "../api/types";
-import { Badge, Button, Input, Sheet, Toast } from "./ui";
+import { Button, Input, Sheet, Toast } from "./ui";
+import { IconoEvento, etiquetaEvento } from "./EventoIcono";
 import { usePolling } from "../hooks/usePolling";
 import { formatoHora } from "../utils/fecha";
 import { ChevronDownIcon, ChevronUpIcon } from "@radix-ui/react-icons";
 
-const TIPOS: Array<{ tipo: TipoEvento; txt: string }> = [
+const TIPOS_GOL: Array<{ tipo: TipoEvento; txt: string }> = [
   { tipo: "gol", txt: "GOL" },
   { tipo: "autogol", txt: "AUTOGOL" },
   { tipo: "penal", txt: "PENAL" },
 ];
+
+const TIPOS_TARJETA: Array<{ tipo: TipoEvento; txt: string; chip: string }> = [
+  { tipo: "amarilla", txt: "T. AMARILLA", chip: "bg-energia-400" },
+  { tipo: "roja", txt: "T. ROJA", chip: "bg-red-600" },
+];
+
+function esTarjeta(tipo: TipoEvento): boolean {
+  return tipo === "amarilla" || tipo === "roja";
+}
+
+const TIPO_TXT: Record<TipoEvento, string> = {
+  gol: "Gol",
+  autogol: "Autogol",
+  penal: "Penal",
+  amarilla: "T. amarilla",
+  roja: "T. roja",
+};
 
 interface Props {
   partidoId: string;
@@ -47,6 +65,7 @@ export function CargaVivo({ partidoId, estadoPartido, localId, visitaId, convoca
   const [tipoGol, setTipoGol] = useState<TipoEvento | null>(null);
   const [error, setError] = useState<unknown>(null);
   const [deshacerId, setDeshacerId] = useState<string | null>(null);
+  const [deshacerTipo, setDeshacerTipo] = useState<TipoEvento | null>(null);
   const [confirmarQuitar, setConfirmarQuitar] = useState<string | null>(null);
   const [avisoQuitar, setAvisoQuitar] = useState<string | null>(null);
   const [seleccion, setSeleccion] = useState<string[]>([]);
@@ -60,11 +79,13 @@ export function CargaVivo({ partidoId, estadoPartido, localId, visitaId, convoca
   const sinAcciones = estadoPartido === "suspendido";
 
   const conteos = useMemo(() => {
-    const mapa = new Map<string, { goles: number; autogoles: number; penales: number }>();
+    const mapa = new Map<string, { goles: number; autogoles: number; penales: number; amarillas: number; rojas: number }>();
     for (const e of eventos) {
-      const actual = mapa.get(e.jugadorId) ?? { goles: 0, autogoles: 0, penales: 0 };
+      const actual = mapa.get(e.jugadorId) ?? { goles: 0, autogoles: 0, penales: 0, amarillas: 0, rojas: 0 };
       if (e.tipo === "gol") actual.goles += 1;
       else if (e.tipo === "autogol") actual.autogoles += 1;
+      else if (e.tipo === "amarilla") actual.amarillas += 1;
+      else if (e.tipo === "roja") actual.rojas += 1;
       else actual.penales += 1;
       mapa.set(e.jugadorId, actual);
     }
@@ -78,6 +99,8 @@ export function CargaVivo({ partidoId, estadoPartido, localId, visitaId, convoca
     if (c.goles > 0) partes.push(`G ${String(c.goles)}`);
     if (c.autogoles > 0) partes.push(`AG ${String(c.autogoles)}`);
     if (c.penales > 0) partes.push(`P ${String(c.penales)}`);
+    if (c.amarillas > 0) partes.push(`TA ${String(c.amarillas)}`);
+    if (c.rojas > 0) partes.push(`TR ${String(c.rojas)}`);
     return partes.length > 0 ? partes.join(" · ") : null;
   }
 
@@ -109,6 +132,7 @@ export function CargaVivo({ partidoId, estadoPartido, localId, visitaId, convoca
       cerrarHoja();
       setMinuto("");
       setDeshacerId(ev.id);
+      setDeshacerTipo(tipo);
       onCambio();
     } catch (err) {
       setError(err);
@@ -178,7 +202,10 @@ export function CargaVivo({ partidoId, estadoPartido, localId, visitaId, convoca
 
   async function borrar(id: string): Promise<void> {
     await services.eventos.eliminar(id);
-    if (deshacerId === id) setDeshacerId(null);
+    if (deshacerId === id) {
+      setDeshacerId(null);
+      setDeshacerTipo(null);
+    }
     onCambio();
   }
 
@@ -186,6 +213,7 @@ export function CargaVivo({ partidoId, estadoPartido, localId, visitaId, convoca
     if (!deshacerId) return;
     const id = deshacerId;
     setDeshacerId(null);
+    setDeshacerTipo(null);
     await borrar(id);
   }
 
@@ -293,9 +321,11 @@ export function CargaVivo({ partidoId, estadoPartido, localId, visitaId, convoca
                 </li>
               ) : null}
               {[...eventos].reverse().map((e) => (
-                <li key={e.id} className="flex items-center justify-between bg-white border border-stone-200 rounded-lg px-3 min-h-11">
-                  <span className="text-sm">
-                    {nombreJugador(e.jugadorId)} · <Badge>{e.tipo}</Badge>{e.minuto !== null ? ` - ${String(e.minuto)}'` : ""}
+                <li key={e.id} className="flex items-center justify-between bg-white border border-stone-200 rounded-lg px-3 min-h-11" aria-label={`${etiquetaEvento(e.tipo)} de ${nombreJugador(e.jugadorId)}`}>
+                  <span className="text-sm flex items-center gap-2">
+                    {nombreJugador(e.jugadorId)}
+                    <IconoEvento tipo={e.tipo} className="h-5 w-5" />
+                    {e.minuto !== null ? `${String(e.minuto)}'` : ""}
                   </span>
                 </li>
               ))}
@@ -325,7 +355,7 @@ export function CargaVivo({ partidoId, estadoPartido, localId, visitaId, convoca
                 {[...eventosJugador].reverse().map((e) => (
                   <li key={e.id} className="flex items-center justify-between bg-white border border-stone-200 rounded-lg px-3 min-h-11">
                     <span className="text-sm">
-                      {nombreJugador(e.jugadorId)} · <Badge>{e.tipo}</Badge>
+                      {nombreJugador(e.jugadorId)} · {TIPO_TXT[e.tipo]}
                       {e.minuto !== null ? ` ${e.minuto}'` : ""}
                     </span>
                     <button
@@ -388,11 +418,25 @@ export function CargaVivo({ partidoId, estadoPartido, localId, visitaId, convoca
           <div className="flex flex-col gap-2">
             {ofreceGoles ? (
               <>
-                {TIPOS.map((t) => (
-                  <Button key={t.tipo} disabled={enviando} onClick={() => void registrar(t.tipo)} className="min-h-14 text-lg">
-                    {enviando && t.tipo === tipoGol ? "Enviando..." : t.txt}
-                  </Button>
-                ))}
+                <div className="flex gap-2">
+                  {TIPOS_GOL.map((t) => (
+                    <Button key={t.tipo} disabled={enviando} onClick={() => void registrar(t.tipo)} className="min-h-14 flex-1 text-lg">
+                      {enviando && t.tipo === tipoGol ? "Enviando..." : t.txt}
+                    </Button>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  {TIPOS_TARJETA.map((t) => (
+                    <Button key={t.tipo} disabled={enviando} onClick={() => void registrar(t.tipo)} className="min-h-14 flex-1 text-md">
+                      {enviando && t.tipo === tipoGol ? "Enviando..." : (
+                        <span className="flex items-center gap-2">
+                          <span aria-hidden="true" className={`inline-block h-5 w-4 rounded-sm ${t.chip}`} />
+                          {t.txt}
+                        </span>
+                      )}
+                    </Button>
+                  ))}
+                </div>
                 {minutoAuto !== null ? (
                   <p className="text-sm text-cancha-700 font-medium">Minuto: {minutoAuto}&apos; (auto)</p>
                 ) : (
@@ -447,7 +491,7 @@ export function CargaVivo({ partidoId, estadoPartido, localId, visitaId, convoca
         ) : null}
       </Sheet>
 
-      {deshacerId ? <Toast texto="Gol registrado" accionTxt="Deshacer" onAccion={() => { void deshacer(); }} /> : null}
+      {deshacerId ? <Toast texto={deshacerTipo !== null && esTarjeta(deshacerTipo) ? "Tarjeta registrada" : "Gol registrado"} accionTxt="Deshacer" onAccion={() => { void deshacer(); }} /> : null}
       {avisoAgregados && !deshacerId ? (
         <Toast texto={avisoAgregados} accionTxt="OK" onAccion={() => { setAvisoAgregados(null); }} />
       ) : null}

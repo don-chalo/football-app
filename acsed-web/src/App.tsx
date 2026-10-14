@@ -169,7 +169,7 @@ export function App(): JSX.Element {
     <SessionProvider>
       <div className="min-h-dvh flex flex-col">
         <Barra />
-        <main className="w-full max-w-2xl mx-auto p-3 pb-10 flex-1">
+        <main className="w-full max-w-3xl mx-auto p-3 pb-10 flex-1">
         <Routes>
           <Route path="/" element={<LigasPage />} />
           <Route path="/login" element={<LoginPage />} />

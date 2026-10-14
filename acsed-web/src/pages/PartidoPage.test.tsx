@@ -162,6 +162,21 @@ describe("compartir por WhatsApp", () => {
     expect(screen.queryByRole("link", { name: "Compartir por WhatsApp" })).not.toBeInTheDocument();
     vi.unstubAllGlobals();
   });
+
+  it("cronología muestra pelota en gol y tarjeta roja con etiqueta", async () => {
+    const det = detalle([]);
+    det.eventos = [
+      { id: "e1", partidoId: "p1", jugadorId: "j1", equipoId: "e1", tipo: "gol", minuto: 23, createdBy: null, createdAt: null },
+      { id: "e2", partidoId: "p1", jugadorId: "j2", equipoId: "e2", tipo: "roja", minuto: 67, createdBy: null, createdAt: null },
+    ];
+    vi.stubGlobal("fetch", mockFetch(det));
+    renderDetalle();
+
+    expect(await screen.findByLabelText("Gol de Juan")).toBeInTheDocument();
+    expect(screen.getByLabelText("Tarjeta roja de Pedro")).toBeInTheDocument();
+    expect(screen.getByLabelText("Gol de Juan").querySelector("svg")).not.toBeNull();
+    vi.unstubAllGlobals();
+  });
 });
 
 describe("cronometro en detalle publico", () => {

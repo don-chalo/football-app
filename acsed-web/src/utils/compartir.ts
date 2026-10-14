@@ -7,7 +7,7 @@ export interface NombresCompartir {
   liga: string;
 }
 
-const SUFIJO: Record<Evento["tipo"], string> = { gol: "", penal: "(p)", autogol: "(ag)" };
+const SUFIJO: Record<Evento["tipo"], string> = { gol: "", penal: "(p)", autogol: "(ag)", amarilla: "(am)", roja: "(rj)" };
 
 /** Bloque de goles del mensaje a compartir. Sin minutos en ningún evento: conteo por jugador. */
 function bloqueGoles(eventos: Evento[], jugadores: Map<string, string>): string[] {

@@ -76,12 +76,15 @@ describe("convocatorias y eventos", () => {
     const cj = await csvc.convocar(p.id, j.id, a.id);
     await csvc.convocar(p.id, k.id, b.id);
     await expect(esvc.registrar(p.id, { jugadorId: j.id, equipoId: a.id, tipo: "gol" })).rejects.toMatchObject({ status: 422 });
+    await expect(esvc.registrar(p.id, { jugadorId: j.id, equipoId: a.id, tipo: "amarilla" })).rejects.toMatchObject({ status: 422 });
     await psvc.cambiarEstado(p.id, "en_juego");
     await csvc.marcar(cj.id, "ausente");
     await expect(esvc.registrar(p.id, { jugadorId: j.id, equipoId: a.id, tipo: "gol" })).rejects.toMatchObject({ status: 422 });
     await csvc.marcar(cj.id, "convocado");
     const gol = await esvc.registrar(p.id, { jugadorId: j.id, equipoId: a.id, tipo: "gol" });
     expect(gol.tipo).toBe("gol");
+    const amarilla = await esvc.registrar(p.id, { jugadorId: j.id, equipoId: a.id, tipo: "amarilla" });
+    expect(amarilla.tipo).toBe("amarilla");
     await psvc.cambiarEstado(p.id, "finalizado");
     const fix = await esvc.registrar(p.id, { jugadorId: k.id, equipoId: b.id, tipo: "autogol" });
     expect(fix.tipo).toBe("autogol");
@@ -97,6 +100,7 @@ describe("convocatorias y eventos", () => {
     const susp = await psvc.cambiarEstado(p.id, "suspendido");
     expect(susp.estado).toBe("suspendido");
     await expect(esvc.registrar(p.id, { jugadorId: j.id, equipoId: a.id, tipo: "gol" })).rejects.toMatchObject({ status: 422 });
+    await expect(esvc.registrar(p.id, { jugadorId: j.id, equipoId: a.id, tipo: "roja" })).rejects.toMatchObject({ status: 422 });
     await expect(psvc.cambiarEstado(p.id, "programado")).rejects.toMatchObject({ status: 422 });
     await expect(psvc.cambiarEstado(p.id, "en_juego")).rejects.toMatchObject({ status: 422 });
   });

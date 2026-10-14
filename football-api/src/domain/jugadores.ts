@@ -9,6 +9,8 @@ export interface FilaJugador {
   pp: number;
   goles: number;
   autogoles: number;
+  amarillas: number;
+  rojas: number;
   convocados: number;
   ausentes: number;
   inasistencia: number;
@@ -36,6 +38,8 @@ export function buildJugadores(
         pp: 0,
         goles: 0,
         autogoles: 0,
+        amarillas: 0,
+        rojas: 0,
         convocados: 0,
         ausentes: 0,
         inasistencia: 0,
@@ -65,7 +69,9 @@ export function buildJugadores(
     for (const e of p.eventos) {
       if (e.jugadorId !== c.jugadorId || e.equipoId !== c.equipoId) continue;
       if (cuentaComoGoleador(e.tipo)) f.goles += 1;
-      else f.autogoles += 1;
+      else if (e.tipo === "autogol") f.autogoles += 1;
+      else if (e.tipo === "amarilla") f.amarillas += 1;
+      else if (e.tipo === "roja") f.rojas += 1;
     }
   }
 

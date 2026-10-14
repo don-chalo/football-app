@@ -5,6 +5,7 @@ import type { EventoBase, TipoEvento } from "./types";
  * Devuelve a que equipo se le suma el gol en el marcador.
  * - gol | penal (en juego): suma al equipo del jugador.
  * - autogol: suma al RIVAL del equipo del jugador.
+ * - amarilla | roja: no suman a nadie (cadena vacia: ningun id de equipo).
  * La tanda de penales NO pasa por aqui (campos penales_* del partido, excluidos).
  */
 export function equipoQueSuma(evento: EventoBase, localId: string, visitaId: string): string {
@@ -15,6 +16,9 @@ export function equipoQueSuma(evento: EventoBase, localId: string, visitaId: str
     case "autogol":
       if (evento.equipoId === localId) return visitaId;
       return localId;
+    case "amarilla":
+    case "roja":
+      return "";
     default: {
       const _exhaustive: never = evento.tipo;
       throw new Error(`Tipo de evento desconocido: ${String(_exhaustive)}`);
@@ -51,6 +55,7 @@ export function golesFavorContra(
   let gf = 0;
   let gc = 0;
   for (const e of eventos) {
+    if (e.tipo === "amarilla" || e.tipo === "roja") continue;
     if (e.tipo === "gol" || e.tipo === "penal") {
       if (e.equipoId === equipoId) gf += 1;
       else if (e.equipoId === rival) gc += 1;

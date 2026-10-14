@@ -3,13 +3,12 @@ import { useParams } from "react-router-dom";
 import * as _ from "lodash";
 import { services } from "../api/services";
 import { Badge, Card, Empty, ErrorMsg, Loading, Title, tonoPorEstado } from "../components/ui";
+import { IconoEvento, etiquetaEvento } from "../components/EventoIcono";
 import { BotonCompartir } from "../components/BotonCompartir";
 import { minutoDePartido } from "../hooks/useCronometro";
 import { useMapaEquipos, useMapaJugadores } from "../hooks/useNombres";
 import { usePolling } from "../hooks/usePolling";
 import { formatoFechaCorta, formatoHora } from "../utils/fecha";
-
-const TIPO_TXT: Record<string, string> = { gol: "Gol", autogol: "Autogol", penal: "Penal" };
 
 export function PartidoPage(): JSX.Element {
   const { id = "" } = useParams();
@@ -127,12 +126,10 @@ export function PartidoPage(): JSX.Element {
               </li>
             ) : null}
             {[...data.eventos].reverse().map((e) => (
-              <li key={e.id} className="border-t border-neutral-200 pt-2">
+              <li key={e.id} className="border-t border-neutral-200 pt-2" aria-label={`${etiquetaEvento(e.tipo)} de ${mapaJugadores.get(e.jugadorId) ?? "?"}`}>
                 <span className="font-medium">{mapaJugadores.get(e.jugadorId) ?? "?"}</span>{" "}
-                <Badge>
-                  {TIPO_TXT[e.tipo] ?? e.tipo}
-                  {e.minuto !== null ? ` ${String(e.minuto)}'` : ""}
-                </Badge>{" "}
+                <IconoEvento tipo={e.tipo} className="inline h-5 w-5" />
+                {e.minuto !== null ? ` ${String(e.minuto)}'` : ""}{" "}
                 <span className="text-sm text-stone-500">({mapaEquipos.get(e.equipoId)})</span>
                 <br />
                 {/* <ActorLine createdBy={e.createdBy} createdAt={e.createdAt} /> */}

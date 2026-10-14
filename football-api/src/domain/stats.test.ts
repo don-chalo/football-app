@@ -88,6 +88,23 @@ describe("buildJugadores", () => {
     const [f] = buildJugadores(partidos, conv);
     expect(f).toMatchObject({ goles: 0, autogoles: 1, pp: 1 });
   });
+
+  it("tarjetas no suman goles ni autogoles, solo sus contadores", () => {
+    const partidos: PartidoBase[] = [
+      {
+        id: "p1", ligaId: "l1", localId: "A", visitaId: "B",
+        fecha: new Date(), estado: "finalizado",
+        eventos: [
+          { jugadorId: "j", equipoId: "A", tipo: "amarilla" },
+          { jugadorId: "j", equipoId: "A", tipo: "amarilla" },
+          { jugadorId: "j", equipoId: "A", tipo: "roja" },
+        ],
+      },
+    ];
+    const conv: ConvocatoriaBase[] = [{ partidoId: "p1", jugadorId: "j", equipoId: "A", estado: "convocado" }];
+    const [f] = buildJugadores(partidos, conv);
+    expect(f).toMatchObject({ goles: 0, autogoles: 0, amarillas: 2, rojas: 1 });
+  });
 });
 
 describe("buildHistorial", () => {

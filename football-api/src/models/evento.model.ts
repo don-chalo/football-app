@@ -17,7 +17,7 @@ const eventoSchema = new Schema<EventoDoc>(
     partidoId: { type: Schema.Types.ObjectId, ref: "Partido", required: true },
     jugadorId: { type: Schema.Types.ObjectId, ref: "Jugador", required: true },
     equipoId: { type: Schema.Types.ObjectId, ref: "Equipo", required: true },
-    tipo: { type: String, required: true, enum: TIPOS_EVENTO },
+    tipo: { type: String, required: true, enum: [...TIPOS_EVENTO] },
     minuto: { type: Number, default: null, min: 0, max: 200 },
     metadata: { type: Schema.Types.Mixed, default: undefined },
     createdBy: { type: createdBySchema, default: null },
