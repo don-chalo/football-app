@@ -14,7 +14,7 @@ import { PartidoFormPage } from "./pages/PartidoFormPage";
 import { PartidoManagePage } from "./pages/PartidoManagePage";
 import { PartidoPage } from "./pages/PartidoPage";
 import { SoccerBall } from "./components/icons/SoccerBall";
-import { HamburgerMenuIcon } from "@radix-ui/react-icons";
+import { HamburgerMenuIcon, InstagramLogoIcon } from "@radix-ui/react-icons";
 
 function Barra(): JSX.Element {
   const { user, logout } = useSession();
@@ -128,11 +128,48 @@ function Barra(): JSX.Element {
   );
 }
 
+function Footer(): JSX.Element {
+  const anio = new Date().getFullYear();
+  return (
+    <footer className="bg-cancha-950 text-white">
+      <div className="max-w-2xl mx-auto px-4 py-2 md:py-6 flex flex-col gap-2">
+        <div className="flex items-center gap-2 font-black tracking-wide text-energia-400">
+          <span>ACSED WEB</span>
+          <SoccerBall />
+        </div>
+        <div className="flex justify-between gap-2">
+          <nav aria-label="Navegación del pie" className="flex flex-col items-start gap-2">
+            <Link to="/ligas" className="flex items-center underline underline-offset-2 text-sm md:text-base">
+              Ligas/Copas
+            </Link>
+            <Link to="/estadisticas" className="flex items-center underline underline-offset-2 text-sm md:text-base">
+              Stats
+            </Link>
+          </nav>
+          <nav aria-label="Redes sociales" className="flex flex-col items-end gap-2">
+            <a
+              href="https://www.instagram.com/fcacsed"
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-2 underline underline-offset-2 text-sm md:text-base"
+            >
+              <InstagramLogoIcon aria-hidden="true" />
+              @fcacsed
+            </a>
+          </nav>
+        </div>
+        <p className="text-sm text-white/70">Temporada {anio}</p>
+      </div>
+    </footer>
+  );
+}
+
 export function App(): JSX.Element {
   return (
     <SessionProvider>
-      <Barra />
-      <main className="max-w-2xl mx-auto p-3 pb-10">
+      <div className="min-h-dvh flex flex-col">
+        <Barra />
+        <main className="w-full max-w-2xl mx-auto p-3 pb-10 flex-1">
         <Routes>
           <Route path="/" element={<LigasPage />} />
           <Route path="/login" element={<LoginPage />} />
@@ -147,7 +184,9 @@ export function App(): JSX.Element {
           <Route path="/admin/partidos/:id" element={<RequireAdmin><PartidoManagePage /></RequireAdmin>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
-      </main>
+        </main>
+        <Footer />
+      </div>
     </SessionProvider>
   );
 }

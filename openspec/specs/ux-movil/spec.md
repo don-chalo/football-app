@@ -7,7 +7,7 @@ Experiencia movil primero: todo usable con una mano en 360px, tactil y con red i
 ## Requirements
 
 ### Requirement: Mobile-first layout and touch targets
-All views SHALL be usable at 360px width with tap targets ≥ 44px, bottom-sheet menus for actions, and no horizontal scrolling on core flows. Points tables SHALL show Equipo/PJ/DIF/%/Pts on small screens with a tappable row expansion revealing PG/PE/PP/GF/GC (plus % in the expansion). Keyboard navigation SHALL show a visible focus ring on interactive elements.
+All views SHALL be usable at 360px width with tap targets ≥ 44px, bottom-sheet menus for actions, and no horizontal scrolling on core flows. Points tables SHALL show Equipo/PJ/DIF/%/Pts on small screens with a tappable row expansion revealing PG/PE/PP/GF/GC (plus % in the expansion). The site footer SHALL meet the same tap-target and no-horizontal-scroll rules at 360px. Keyboard navigation SHALL show a visible focus ring on interactive elements.
 
 #### Scenario: Load goal on phone
 - **WHEN** a planillero loads a goal on a 360px phone
@@ -20,6 +20,10 @@ All views SHALL be usable at 360px width with tap targets ≥ 44px, bottom-sheet
 #### Scenario: Keyboard focus is visible
 - **WHEN** a user tabs through buttons, links and tabs
 - **THEN** the focused element shows a green focus ring.
+
+#### Scenario: Footer fits without sideways scroll
+- **WHEN** a visitor opens any page on a 360px phone
+- **THEN** the footer shows brand, navigation, Instagram and season year with no horizontal scroll and tap targets ≥ 44px.
 
 ### Requirement: Skeleton loading states
 Main views (ligas, fixture, workspace) SHALL show skeleton placeholders shaped like their lists while loading instead of plain "Cargando..." text.
