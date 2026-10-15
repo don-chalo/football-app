@@ -1,13 +1,10 @@
 import { useMemo, useState, type JSX } from "react";
-import { Collapsible, Content, Trigger } from "@radix-ui/react-collapsible";
 import { mensajeError } from "../api/client";
 import { services } from "../api/services";
 import type { Convocatoria, EstadoPartido, Evento, TipoEvento } from "../api/types";
 import { Button, Input, Sheet, Toast } from "./ui";
-import { IconoEvento, etiquetaEvento } from "./EventoIcono";
+import { Cronologia } from "./Cronologia";
 import { usePolling } from "../hooks/usePolling";
-import { formatoHora } from "../utils/fecha";
-import { ChevronDownIcon, ChevronUpIcon } from "@radix-ui/react-icons";
 
 const TIPOS_GOL: Array<{ tipo: TipoEvento; txt: string }> = [
   { tipo: "gol", txt: "GOL" },
@@ -59,7 +56,6 @@ export function CargaVivo({ partidoId, estadoPartido, localId, visitaId, convoca
     | { modo: "quitar"; jugadorId: string }
     | { modo: "agregar-jugador"; equipoId: string };
   const [hoja, setHoja] = useState<Hoja | null>(null);
-  const [cronoAbierta, setCronoAbierta] = useState(estadoPartido === "finalizado");
   const [minuto, setMinuto] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [tipoGol, setTipoGol] = useState<TipoEvento | null>(null);
@@ -221,7 +217,6 @@ export function CargaVivo({ partidoId, estadoPartido, localId, visitaId, convoca
   const disponibles = (catalogo.data ?? []).filter((j) => !convocatorias.some((c) => c.jugadorId === j.id));
   const filtroNorm = filtro.trim().toLowerCase();
   const filtrados = filtroNorm === "" ? disponibles : disponibles.filter((j) => j.nombre.toLowerCase().includes(filtroNorm));
-  const muestraFin = !!finEn || estadoPartido === "finalizado";
   const tituloHoja = !hoja
     ? ""
     : hoja.modo === "quitar"
@@ -295,51 +290,17 @@ export function CargaVivo({ partidoId, estadoPartido, localId, visitaId, convoca
       })}
       {error ? <p className="text-red-700">{mensajeError(error)} (no se registró, reintenta)</p> : null}
 
-      <Collapsible open={cronoAbierta} onOpenChange={setCronoAbierta}>
-        <Trigger asChild>
-          <button
-            type="button"
-            className="flex min-h-11 w-full items-center justify-between font-bold"
-          >
-            <span>{`Cronología (${String(eventos.length)})`}</span>
-            {
-              cronoAbierta ? <ChevronUpIcon className="w-5 h-5" /> : <ChevronDownIcon className="w-5 h-5" />
-            }
-            {/* <span aria-hidden="true">{cronoAbierta ? "-" : "+"}</span> */}
-          </button>
-        </Trigger>
-        <Content>
-          {eventos.length === 0 && !inicioEn && !muestraFin ? (
-            <p className="text-sm text-stone-500">Sin goles.</p>
-          ) : (
-            <ul className="flex flex-col gap-1">
-              {muestraFin ? (
-                <li className="flex items-center bg-cancha-50 border border-cancha-600/20 rounded-lg px-3 min-h-11">
-                  <span className="text-sm font-medium text-cancha-800">
-                    {finEn ? `Fin ${formatoHora(finEn)}${minutoFin !== null ? ` · ${String(minutoFin)}'` : ""}` : "Fin"}
-                  </span>
-                </li>
-              ) : null}
-              {[...eventos].reverse().map((e) => (
-                <li key={e.id} className="flex items-center justify-between bg-white border border-stone-200 rounded-lg px-3 min-h-11" aria-label={`${etiquetaEvento(e.tipo)} de ${nombreJugador(e.jugadorId)}`}>
-                  <span className="text-sm flex items-center gap-2">
-                    {nombreJugador(e.jugadorId)}
-                    <IconoEvento tipo={e.tipo} className="h-5 w-5" />
-                    {e.minuto !== null ? `${String(e.minuto)}'` : ""}
-                  </span>
-                </li>
-              ))}
-              {inicioEn || estadoPartido === "en_juego" || estadoPartido === "finalizado" ? (
-                <li className="flex items-center bg-cancha-50 border border-cancha-600/20 rounded-lg px-3 min-h-11">
-                  <span className="text-sm font-medium text-cancha-800">
-                    Inicio {inicioEn && formatoHora(inicioEn)}
-                  </span>
-                </li>
-              ) : null}
-            </ul>
-          )}
-        </Content>
-      </Collapsible>
+      <Cronologia
+        colapsable
+        abiertaInicial={estadoPartido === "finalizado"}
+        eventos={eventos}
+        nombreJugador={nombreJugador}
+        nombreEquipo={nombreEquipo}
+        inicioEn={inicioEn}
+        finEn={finEn}
+        estadoPartido={estadoPartido}
+        minutoFin={minutoFin}
+      />
 
       <Sheet
         open={hoja !== null}

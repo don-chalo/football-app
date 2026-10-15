@@ -3,12 +3,12 @@ import { useParams } from "react-router-dom";
 import * as _ from "lodash";
 import { services } from "../api/services";
 import { Badge, Card, Empty, ErrorMsg, Loading, Title, tonoPorEstado } from "../components/ui";
-import { IconoEvento, etiquetaEvento } from "../components/EventoIcono";
+import { Cronologia } from "../components/Cronologia";
 import { BotonCompartir } from "../components/BotonCompartir";
 import { minutoDePartido } from "../hooks/useCronometro";
 import { useMapaEquipos, useMapaJugadores } from "../hooks/useNombres";
 import { usePolling } from "../hooks/usePolling";
-import { formatoFechaCorta, formatoHora } from "../utils/fecha";
+import { formatoFechaCorta } from "../utils/fecha";
 
 export function PartidoPage(): JSX.Element {
   const { id = "" } = useParams();
@@ -36,7 +36,6 @@ export function PartidoPage(): JSX.Element {
   if (!data) return <Empty texto="Partido no encontrado." />;
   const locales = data.convocatorias.filter((c) => c.equipoId === data.localId);
   const visitas = data.convocatorias.filter((c) => c.equipoId === data.visitaId);
-  const muestraFin = !!data.finEn || data.estado === "finalizado";
   const minutoFin = data.finEn ? minutoDePartido(data, Date.now()) : null;
 
   return (
@@ -113,35 +112,15 @@ export function PartidoPage(): JSX.Element {
         )}
       </Card>
       <Card className="text-neutral-800">
-        <h2 className="font-bold mb-2">Cronología</h2>
-        {data.eventos.length === 0 && !data.inicioEn && !muestraFin ? (
-          <Empty texto="Sin goles." />
-        ) : (
-          <ul className="flex flex-col gap-2">
-            {muestraFin ? (
-              <li className="border-t border-neutral-200 pt-2">
-                <span className="font-medium text-cancha-800">
-                  {data.finEn ? `Fin ${formatoHora(data.finEn)}${minutoFin !== null ? ` · ${String(minutoFin)}'` : ""}` : "Fin"}
-                </span>
-              </li>
-            ) : null}
-            {[...data.eventos].reverse().map((e) => (
-              <li key={e.id} className="border-t border-neutral-200 pt-2" aria-label={`${etiquetaEvento(e.tipo)} de ${mapaJugadores.get(e.jugadorId) ?? "?"}`}>
-                <span className="font-medium">{mapaJugadores.get(e.jugadorId) ?? "?"}</span>{" "}
-                <IconoEvento tipo={e.tipo} className="inline h-5 w-5" />
-                {e.minuto !== null ? ` ${String(e.minuto)}'` : ""}{" "}
-                <span className="text-sm text-stone-500">({mapaEquipos.get(e.equipoId)})</span>
-                <br />
-                {/* <ActorLine createdBy={e.createdBy} createdAt={e.createdAt} /> */}
-              </li>
-            ))}
-            {data.inicioEn ? (
-              <li className="border-t border-neutral-200 pt-2">
-                <span className="font-medium text-cancha-800">Inicio {formatoHora(data.inicioEn)}</span>
-              </li>
-            ) : null}
-          </ul>
-        )}
+        <Cronologia
+          eventos={data.eventos}
+          nombreJugador={(id) => mapaJugadores.get(id) ?? "?"}
+          nombreEquipo={(id) => mapaEquipos.get(id) ?? "?"}
+          inicioEn={data.inicioEn}
+          finEn={data.finEn}
+          estadoPartido={data.estado}
+          minutoFin={minutoFin}
+        />
       </Card>
     </div>
   );
