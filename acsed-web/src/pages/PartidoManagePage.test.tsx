@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -30,10 +30,10 @@ const detalle: PartidoDetalle = {
   eventos: [],
 };
 
-function mockFetch() {
+function mockFetch(estado: string = "programado") {
   return vi.fn(async (url: unknown, init?: RequestInit): Promise<Response> => {
     const u = String(url);
-    if (u.endsWith("/partidos/p1")) return new Response(JSON.stringify(detalle), { status: 200 });
+    if (u.endsWith("/partidos/p1")) return new Response(JSON.stringify({ ...detalle, estado }), { status: 200 });
     if (u.endsWith("/equipos")) {
       return new Response(
         JSON.stringify([
@@ -278,8 +278,15 @@ describe("compartir por WhatsApp en gestión", () => {
     vi.unstubAllGlobals();
   });
 
-  it("en programado no muestra el botón", async () => {
+  it("en programado muestra el botón y en suspendido no", async () => {
     vi.stubGlobal("fetch", mockFetch());
+    renderPage();
+    const btn = await screen.findByRole("link", { name: "Compartir por WhatsApp" });
+    expect(btn.getAttribute("href") ?? "").toContain(encodeURIComponent("ALFA vs BETA"));
+    vi.unstubAllGlobals();
+    cleanup();
+
+    vi.stubGlobal("fetch", mockFetch("suspendido"));
     renderPage();
     expect(await screen.findByText("Convocatoria y goles")).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Compartir por WhatsApp" })).not.toBeInTheDocument();

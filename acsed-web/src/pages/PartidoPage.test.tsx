@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { PartidoPage } from "./PartidoPage";
@@ -154,8 +154,29 @@ describe("compartir por WhatsApp", () => {
     vi.unstubAllGlobals();
   });
 
-  it("en juego no muestra el botón", async () => {
+  it("en juego muestra el botón con header EN VIVO", async () => {
     vi.stubGlobal("fetch", mockFetch(detalle([])));
+    renderDetalle();
+
+    const btn = await screen.findByRole("link", { name: "Compartir por WhatsApp" });
+    expect(btn.getAttribute("href") ?? "").toContain(encodeURIComponent("EN VIVO"));
+    vi.unstubAllGlobals();
+  });
+
+  it("en programado muestra el botón con vs y en suspendido no", async () => {
+    const prog = detalle([]);
+    prog.estado = "programado";
+    vi.stubGlobal("fetch", mockFetch(prog));
+    renderDetalle();
+
+    const btn = await screen.findByRole("link", { name: "Compartir por WhatsApp" });
+    expect(btn.getAttribute("href") ?? "").toContain(encodeURIComponent("ALFA vs BETA"));
+    vi.unstubAllGlobals();
+    cleanup();
+
+    const susp = detalle([]);
+    susp.estado = "suspendido";
+    vi.stubGlobal("fetch", mockFetch(susp));
     renderDetalle();
 
     expect(await screen.findByText("Cronología")).toBeInTheDocument();

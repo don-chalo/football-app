@@ -1,0 +1,8 @@
+- [x] 1. `textoCompartir` por estado en `compartir.ts`
+  - [x] 1.1 `programado`: `LOCAL vs VISITA` + `liga · fecha` + back-link, sin goles
+  - [x] 1.2 `en_juego`: header `EN VIVO {minuto}'` + cuerpo finalizado reutilizando `bloqueGoles`/penales
+  - [x] 1.3 `finalizado` delega a `textoResultado` sin cambios
+  - [x] 1.4 Tests en `compartir.test.ts`: programado (sin `0 - 0`), vivo con/sin minutos, vivo sin goles, penales en vivo
+- [x] 2. `BotonCompartir`: guard `programado|en_juego|finalizado`, minuto vía `minutoDePartido` al renderizar
+  - [x] 2.1 Tests presencia en programado/en juego y ausencia en suspendido (`PartidoPage.test.tsx`, `PartidoManagePage.test.tsx`)
+- [x] 3. Gates: `tsc`, `lint`, suite completa, `build`

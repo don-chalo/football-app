@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Evento, PartidoDetalle } from "../api/types";
-import { enlaceWhatsApp, textoResultado } from "./compartir";
+import { enlaceWhatsApp, textoCompartir, textoResultado } from "./compartir";
 
 function evento(parcial: Partial<Evento> & { jugadorId: string; tipo: Evento["tipo"] }): Evento {
   return {
@@ -135,5 +135,63 @@ describe("textoResultado", () => {
     expect(href.startsWith("https://wa.me/?text=")).toBe(true);
     expect(href).toContain(encodeURIComponent("ALFA 2 - 1 BETA"));
     expect(href).not.toContain("\n");
+  });
+});
+
+describe("textoCompartir", () => {
+  it("programado muestra vs sin marcador ni goles", () => {
+    const d = detalle([evento({ jugadorId: "j1", tipo: "gol", minuto: 10 })], false);
+    d.estado = "programado";
+    d.marcador = { local: 0, visita: 0 };
+    const texto = textoCompartir(d, nombres, ORIGIN, null);
+    expect(texto).toContain("ALFA vs BETA");
+    expect(texto).not.toContain("0 - 0");
+    expect(texto).not.toContain("Goles:");
+    expect(texto).toContain("Apertura · ");
+    expect(texto).toContain(`${ORIGIN}/partidos/p1`);
+  });
+
+  it("en juego muestra header EN VIVO con cuerpo finalizado", () => {
+    const d = detalle(
+      [
+        evento({ jugadorId: "j1", tipo: "gol", minuto: 23 }),
+        evento({ jugadorId: "j2", tipo: "penal", minuto: 45 }),
+      ],
+      false,
+    );
+    d.estado = "en_juego";
+    d.marcador = { local: 1, visita: 1 };
+    const texto = textoCompartir(d, nombres, ORIGIN, 50);
+    expect(texto).toContain("EN VIVO 50' — ALFA 1 - 1 BETA");
+    expect(texto).toContain("Goles:\n- Juan 23'\n- Pedro 45'(p)");
+    expect(texto).toContain(`${ORIGIN}/partidos/p1`);
+  });
+
+  it("en juego sin minutos usa conteo y sin goles muestra Sin goles", () => {
+    const sinMinutos = detalle([evento({ jugadorId: "j1", tipo: "gol" })], false);
+    sinMinutos.estado = "en_juego";
+    sinMinutos.marcador = { local: 1, visita: 0 };
+    expect(textoCompartir(sinMinutos, nombres, ORIGIN, 30)).toContain("EN VIVO 30' — ALFA 1 - 0 BETA");
+    expect(textoCompartir(sinMinutos, nombres, ORIGIN, 30)).toContain("Goleadores:\n- Juan 1 gol");
+
+    const sinGoles = detalle([], false);
+    sinGoles.estado = "en_juego";
+    sinGoles.marcador = { local: 0, visita: 0 };
+    expect(textoCompartir(sinGoles, nombres, ORIGIN, 5)).toContain("Sin goles.");
+  });
+
+  it("en juego con penales agrega línea", () => {
+    const d = detalle([evento({ jugadorId: "j1", tipo: "gol", minuto: 34 })], true);
+    d.estado = "en_juego";
+    d.marcador = { local: 1, visita: 1 };
+    expect(textoCompartir(d, nombres, ORIGIN, 90)).toContain("Penales: 4 - 3");
+  });
+
+  it("finalizado delega a textoResultado y suspendido devuelve null", () => {
+    const d = detalle([evento({ jugadorId: "j1", tipo: "gol", minuto: 23 })], false);
+    d.marcador = { local: 2, visita: 1 };
+    expect(textoCompartir(d, nombres, ORIGIN, null)).toBe(textoResultado(d, nombres, ORIGIN));
+    d.estado = "suspendido";
+    expect(textoCompartir(d, nombres, ORIGIN, null)).toBeNull();
   });
 });

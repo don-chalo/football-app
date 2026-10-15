@@ -38,6 +38,15 @@ function bloqueGoles(eventos: Evento[], jugadores: Map<string, string>): string[
   return ["Goles:", ...lineas];
 }
 
+/** Cuerpo estilo finalizado: goles + penales. Desde la línea 3, en juego usa la misma lógica. */
+function cuerpoFinalizado(detalle: PartidoDetalle, jugadores: Map<string, string>): string[] {
+  const lineas = [...bloqueGoles(detalle.eventos, jugadores)];
+  if (detalle.penalesLocal !== null && detalle.penalesVisita !== null) {
+    lineas.push("", `Penales: ${detalle.penalesLocal.toString()} - ${detalle.penalesVisita.toString()}`);
+  }
+  return lineas;
+}
+
 /** Texto del resultado de un partido finalizado para compartir por WhatsApp. */
 export function textoResultado(detalle: PartidoDetalle, nombres: NombresCompartir, origin: string): string {
   const local = (nombres.equipos.get(detalle.localId) ?? "?").toUpperCase();
@@ -46,13 +55,31 @@ export function textoResultado(detalle: PartidoDetalle, nombres: NombresComparti
     `${local} ${detalle.marcador.local.toString()} - ${detalle.marcador.visita.toString()} ${visita}`,
     `${nombres.liga} · ${formatoFechaCorta(detalle.fecha)}`,
     "",
-    ...bloqueGoles(detalle.eventos, nombres.jugadores),
+    ...cuerpoFinalizado(detalle, nombres.jugadores),
   ];
-  if (detalle.penalesLocal !== null && detalle.penalesVisita !== null) {
-    lineas.push("", `Penales: ${detalle.penalesLocal.toString()} - ${detalle.penalesVisita.toString()}`);
-  }
   lineas.push("", `${origin}/partidos/${detalle.id}`);
   return lineas.join("\n");
+}
+
+/** Texto a compartir según estado. Minuto actual solo para en juego (foto al renderizar). Null en suspendido. */
+export function textoCompartir(detalle: PartidoDetalle, nombres: NombresCompartir, origin: string, minutoActual: number | null): string | null {
+  const local = (nombres.equipos.get(detalle.localId) ?? "?").toUpperCase();
+  const visita = (nombres.equipos.get(detalle.visitaId) ?? "?").toUpperCase();
+  const ligaFecha = `${nombres.liga} · ${formatoFechaCorta(detalle.fecha)}`;
+  const enlace = `${origin}/partidos/${detalle.id}`;
+  if (detalle.estado === "programado") {
+    return [`${local} vs ${visita}`, ligaFecha, "", enlace].join("\n");
+  }
+  if (detalle.estado === "en_juego") {
+    const encabezado = minutoActual !== null
+      ? `EN VIVO ${minutoActual.toString()}' — ${local} ${detalle.marcador.local.toString()} - ${detalle.marcador.visita.toString()} ${visita}`
+      : `EN VIVO — ${local} ${detalle.marcador.local.toString()} - ${detalle.marcador.visita.toString()} ${visita}`;
+    return [encabezado, ligaFecha, "", ...cuerpoFinalizado(detalle, nombres.jugadores), "", enlace].join("\n");
+  }
+  if (detalle.estado === "finalizado") {
+    return textoResultado(detalle, nombres, origin);
+  }
+  return null;
 }
 
 /** Enlace wa.me (sin número: el usuario elige el chat) para el texto dado. */

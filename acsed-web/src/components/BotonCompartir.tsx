@@ -1,10 +1,11 @@
 import { useEffect, useState, type JSX } from "react";
 import { services } from "../api/services";
 import type { PartidoDetalle } from "../api/types";
-import { enlaceWhatsApp, textoResultado } from "../utils/compartir";
+import { enlaceWhatsApp, textoCompartir } from "../utils/compartir";
+import { minutoDePartido } from "../hooks/useCronometro";
 import { WhatsappIcon } from "./icons/WhatsappIcon";
 
-/** Botón "Compartir por WhatsApp" para partidos finalizados. Estado interno: no re-renderiza al padre. */
+/** Botón "Compartir por WhatsApp" para programado/en juego/finalizado. Estado interno: no re-renderiza al padre. */
 export function BotonCompartir({ detalle, mapaEquipos, mapaJugadores }: {
   detalle: PartidoDetalle;
   mapaEquipos: Map<string, string>;
@@ -20,10 +21,17 @@ export function BotonCompartir({ detalle, mapaEquipos, mapaJugadores }: {
     return () => { vivo = false; };
   }, [detalle.ligaId]);
 
-  if (detalle.estado !== "finalizado") return null;
+  if (detalle.estado !== "programado" && detalle.estado !== "en_juego" && detalle.estado !== "finalizado") return null;
+  const texto = textoCompartir(
+    detalle,
+    { equipos: mapaEquipos, jugadores: mapaJugadores, liga: ligaNombre },
+    window.location.origin,
+    detalle.estado === "en_juego" ? minutoDePartido(detalle, Date.now()) : null,
+  );
+  if (texto === null) return null;
   return (
     <a
-      href={enlaceWhatsApp(textoResultado(detalle, { equipos: mapaEquipos, jugadores: mapaJugadores, liga: ligaNombre }, window.location.origin))}
+      href={enlaceWhatsApp(texto)}
       target="_blank"
       rel="noreferrer"
       aria-label="Compartir por WhatsApp"
