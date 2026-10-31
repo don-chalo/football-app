@@ -9,38 +9,59 @@ export interface NombresCompartir {
 
 const SUFIJO: Record<Evento["tipo"], string> = { gol: "", penal: "(p)", autogol: "(ag)", amarilla: "(am)", roja: "(rj)" };
 
-/** Bloque de goles del mensaje a compartir. Sin minutos en ningún evento: conteo por jugador. */
-function bloqueGoles(eventos: Evento[], jugadores: Map<string, string>): string[] {
+function bloqueGolesGeneral(eventos: Evento[], jugadores: Map<string, string>): string[] {
   const goles = eventos.filter((e) => e.tipo === "gol" || e.tipo === "penal" || e.tipo === "autogol");
   if (goles.length === 0) return ["Sin goles."];
-  if (goles.every((e) => e.minuto === null)) {
-    const conteo = new Map<string, number>();
-    for (const e of goles) conteo.set(e.jugadorId, (conteo.get(e.jugadorId) ?? 0) + 1);
-    const ordenados = [...conteo.entries()].sort(([aId, aN], [bId, bN]) =>
-      bN - aN || (jugadores.get(aId) ?? "?").localeCompare(jugadores.get(bId) ?? "?"),
-    );
-    const lineas = ordenados.map(
-      ([jugadorId, n]) => `- ${jugadores.get(jugadorId) ?? "?"} ${n.toString()} ${n === 1 ? "gol" : "goles"}`,
-    );
-    return ["Goleadores:", ...lineas];
-  }
-  const porJugador = new Map<string, string[]>();
+  // Obtener goles por jugador.
+  const golesPorJugador = new Map<string, string[]>();
   for (const e of goles) {
-    const minutos = porJugador.get(e.jugadorId) ?? [];
-    if (e.minuto !== null) minutos.push(`${e.minuto.toString()}'${SUFIJO[e.tipo]}`);
-    porJugador.set(e.jugadorId, minutos);
+    const minutos = golesPorJugador.get(e.jugadorId) ?? [];
+    minutos.push(e.minuto && `${e.minuto.toString()}'${SUFIJO[e.tipo]}` || "?");
+    golesPorJugador.set(e.jugadorId, minutos);
   }
-  const lineas = [...porJugador.entries()].map(([jugadorId, minutos]) => {
+  // Ordenar por cantidad de goles y luego por nombre.
+  const jugadoresOrdenados = [...golesPorJugador.entries()].sort(([aId, aMinutos], [bId, bMinutos]) =>
+    bMinutos.length - aMinutos.length || (jugadores.get(aId) ?? "?").localeCompare(jugadores.get(bId) ?? "?"),
+  );
+  // Generar líneas de texto.
+  const lineas = jugadoresOrdenados.map(([jugadorId, minutos]) => {
     const nombre = jugadores.get(jugadorId) ?? "?";
-    if (minutos.length === 0) return `- ${nombre}`;
-    return `- ${nombre} ${minutos.join(", ")}`;
+    // retornar "- <Nombre>: <cantidad de goles> (<minutos>)"
+    // si todos los minutos son "?", entonces retornar "- <Nombre>: <cantidad de goles>"
+    if (minutos.every((m) => m === "?")) return `- ${minutos.length.toString()} ${nombre}`;
+    return `- ${minutos.length.toString()} ${nombre}: (${minutos.join(", ")})`;
   });
   return ["Goles:", ...lineas];
 }
 
-/** Cuerpo estilo finalizado: goles + penales. Desde la línea 3, en juego usa la misma lógica. */
+/** Cuerpo estilo finalizado: goles + tarjetas + penales. Desde la línea 3, en juego usa la misma lógica. */
 function cuerpoFinalizado(detalle: PartidoDetalle, jugadores: Map<string, string>): string[] {
-  const lineas = [...bloqueGoles(detalle.eventos, jugadores)];
+  const lineas = [...bloqueGolesGeneral(detalle.eventos, jugadores)];
+
+  const amarillasPorJugador = new Map<string, number>();
+  const rojasPorJugador = new Map<string, number>();
+  for (const e of detalle.eventos) {
+    if (e.tipo === "amarilla") amarillasPorJugador.set(e.jugadorId, (amarillasPorJugador.get(e.jugadorId) ?? 0) + 1);
+    else if (e.tipo === "roja") rojasPorJugador.set(e.jugadorId, (rojasPorJugador.get(e.jugadorId) ?? 0) + 1);
+  }
+
+  const lineasTarjetas: string[] = [];
+  const amarillasOrdenadas = [...amarillasPorJugador.entries()].sort(([aId], [bId]) =>
+    (jugadores.get(aId) ?? "?").localeCompare(jugadores.get(bId) ?? "?"),
+  );
+  if (amarillasOrdenadas.length > 0) {
+    lineasTarjetas.push(`TA: ${amarillasOrdenadas.map(([id, n]) => `${jugadores.get(id) ?? "?"} ${n}`).join(", ")}`);
+  }
+  const rojasOrdenadas = [...rojasPorJugador.entries()].sort(([aId], [bId]) =>
+    (jugadores.get(aId) ?? "?").localeCompare(jugadores.get(bId) ?? "?"),
+  );
+  if (rojasOrdenadas.length > 0) {
+    lineasTarjetas.push(`TR: ${rojasOrdenadas.map(([id, n]) => `${jugadores.get(id) ?? "?"} ${n}`).join(", ")}`);
+  }
+  if (lineasTarjetas.length > 0) {
+    lineas.push("", ...lineasTarjetas);
+  }
+
   if (detalle.penalesLocal !== null && detalle.penalesVisita !== null) {
     lineas.push("", `Penales: ${detalle.penalesLocal.toString()} - ${detalle.penalesVisita.toString()}`);
   }

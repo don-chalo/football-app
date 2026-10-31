@@ -61,7 +61,7 @@ describe("textoResultado", () => {
     const texto = textoResultado(d, nombres, ORIGIN);
     expect(texto).toContain("ALFA 2 - 1 BETA");
     expect(texto).toContain("Apertura · ");
-    expect(texto).toContain("Goles:\n- Juan 23', 67'\n- Pedro 45'(p)");
+    expect(texto).toContain("Goles:\n- 2 Juan: (23', 67')\n- 1 Pedro: (45'(p))");
     expect(texto).toContain(`${ORIGIN}/partidos/p1`);
   });
 
@@ -75,7 +75,7 @@ describe("textoResultado", () => {
       false,
     );
     d.marcador = { local: 2, visita: 2 };
-    expect(textoResultado(d, nombres, ORIGIN)).toContain("- López 55'(ag)");
+    expect(textoResultado(d, nombres, ORIGIN)).toContain("- 1 López: (55'(ag))");
   });
 
   it("sin minutos usa conteo de goleadores", () => {
@@ -88,8 +88,8 @@ describe("textoResultado", () => {
       false,
     );
     const texto = textoResultado(d, nombres, ORIGIN);
-    expect(texto).toContain("Goleadores:\n- Juan 2 goles\n- Pedro 1 gol");
-    expect(texto).not.toContain("Goles:");
+    expect(texto).toContain("Goles:\n- 2 Juan\n- 1 Pedro");
+    expect(texto).not.toContain("Goleadores:");
   });
 
   it("goleadores sin minutos ordenados descendente", () => {
@@ -102,7 +102,7 @@ describe("textoResultado", () => {
       false,
     );
     const texto = textoResultado(d, nombres, ORIGIN);
-    expect(texto).toContain("Goleadores:\n- Juan 2 goles\n- Pedro 1 gol");
+    expect(texto).toContain("Goles:\n- 2 Juan\n- 1 Pedro");
   });
 
   it("minuto mixto: con minuto cronológico, sin minuto a secas", () => {
@@ -114,8 +114,8 @@ describe("textoResultado", () => {
       false,
     );
     const texto = textoResultado(d, nombres, ORIGIN);
-    expect(texto).toContain("- Juan 23'");
-    expect(texto).toContain("- Pedro\n");
+    expect(texto).toContain("- 1 Juan: (23')");
+    expect(texto).toContain("- 1 Pedro");
   });
 
   it("penales agregan línea y 0-0 muestra Sin goles", () => {
@@ -128,6 +128,33 @@ describe("textoResultado", () => {
     const texto = textoResultado(cero, nombres, ORIGIN);
     expect(texto).toContain("Sin goles.");
     expect(texto).not.toContain("Penales:");
+  });
+
+  it("tarjetas amarillas y rojas entre goles y penales", () => {
+    const d = detalle(
+      [
+        evento({ jugadorId: "j1", tipo: "amarilla" }),
+        evento({ jugadorId: "j2", tipo: "amarilla" }),
+        evento({ jugadorId: "j2", tipo: "amarilla" }),
+        evento({ jugadorId: "j3", tipo: "roja" }),
+        evento({ jugadorId: "j1", tipo: "gol", minuto: 10 }),
+      ],
+      false,
+    );
+    d.marcador = { local: 1, visita: 0 };
+    expect(textoResultado(d, nombres, ORIGIN)).toContain(
+      "Goles:\n- 1 Juan: (10')",
+    );
+    expect(textoResultado(d, nombres, ORIGIN)).toContain("TA: Juan 1, Pedro 2");
+    expect(textoResultado(d, nombres, ORIGIN)).toContain("TR: López 1");
+    expect(textoResultado(d, nombres, ORIGIN)).not.toContain("Penales:");
+  });
+
+  it("sin tarjetas no imprime líneas TA ni TR", () => {
+    const d = detalle([evento({ jugadorId: "j1", tipo: "gol", minuto: 10 })], false);
+    d.marcador = { local: 1, visita: 0 };
+    expect(textoResultado(d, nombres, ORIGIN)).not.toContain("TA:");
+    expect(textoResultado(d, nombres, ORIGIN)).not.toContain("TR:");
   });
 
   it("enlaceWhatsApp codifica el texto", () => {
@@ -163,7 +190,7 @@ describe("textoCompartir", () => {
     d.marcador = { local: 1, visita: 1 };
     const texto = textoCompartir(d, nombres, ORIGIN, 50);
     expect(texto).toContain("EN VIVO 50' — ALFA 1 - 1 BETA");
-    expect(texto).toContain("Goles:\n- Juan 23'\n- Pedro 45'(p)");
+    expect(texto).toContain("Goles:\n- 1 Juan: (23')\n- 1 Pedro: (45'(p))");
     expect(texto).toContain(`${ORIGIN}/partidos/p1`);
   });
 
@@ -172,7 +199,7 @@ describe("textoCompartir", () => {
     sinMinutos.estado = "en_juego";
     sinMinutos.marcador = { local: 1, visita: 0 };
     expect(textoCompartir(sinMinutos, nombres, ORIGIN, 30)).toContain("EN VIVO 30' — ALFA 1 - 0 BETA");
-    expect(textoCompartir(sinMinutos, nombres, ORIGIN, 30)).toContain("Goleadores:\n- Juan 1 gol");
+    expect(textoCompartir(sinMinutos, nombres, ORIGIN, 30)).toContain("Goles:\n- 1 Juan");
 
     const sinGoles = detalle([], false);
     sinGoles.estado = "en_juego";
