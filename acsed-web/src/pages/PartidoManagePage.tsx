@@ -8,6 +8,7 @@ import { CargaVivo } from "../components/CargaVivo";
 import { Cronometro } from "../components/Cronometro";
 import { Badge, Button, Card, Empty, ErrorMsg, Input, SkeletonFilas, Title, tonoPorEstado } from "../components/ui";
 import { minutoDePartido } from "../hooks/useCronometro";
+import { useWakeLock } from "../hooks/useWakeLock";
 import { useMapaEquipos, useMapaJugadores } from "../hooks/useNombres";
 import { usePolling } from "../hooks/usePolling";
 import { formatoFechaCorta } from "../utils/fecha";
@@ -17,6 +18,10 @@ export function PartidoManagePage(): JSX.Element {
   const detalle = usePolling(() => services.partidos.detalle(id), 15_000);
   const mapaEquipos = useMapaEquipos();
   const mapaJugadores = useMapaJugadores();
+
+  // Mantener la pantalla activa mientras el partido esté en juego y no pausado.
+  const pantallaActiva = detalle.data?.estado === "en_juego" && !detalle.data?.pausaDesde;
+  useWakeLock(pantallaActiva);
 
   if (detalle.loading && !detalle.data) return <SkeletonFilas />;
   if (detalle.error && !detalle.data) return <ErrorMsg error={detalle.error} onRetry={detalle.refresh} />;
