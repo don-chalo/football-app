@@ -31,6 +31,22 @@ export function PartidoPage(): JSX.Element {
     ["desc", "asc"]
   );
 
+  const autogoles = _.orderBy(
+    _.map(
+      _.reduce(
+        data?.eventos.filter((e) => e.tipo === "autogol") || [],
+        (result: Record<string, number>, value: { jugadorId: string }) => {
+          result[value.jugadorId] = (result[value.jugadorId] || 0) + 1;
+          return result;
+        },
+        {}
+      ),
+      (value, key) => ({ nombre: key, goles: value })
+    ),
+    ["goles", "nombre"],
+    ["desc", "asc"]
+  );
+
   if (loading && !data) return <Loading />;
   if (error && !data) return <ErrorMsg error={error} onRetry={refresh} />;
   if (!data) return <Empty texto="Partido no encontrado." />;
@@ -97,18 +113,36 @@ export function PartidoPage(): JSX.Element {
       </Card>
       <Card className="text-neutral-800">
         <h2 className="font-bold mb-2">Goleadores</h2>
-        {goleadores.length === 0 ? (
+        {goleadores.length === 0 && autogoles.length === 0 ? (
           <Empty texto="Sin goles." />
         ) : (
-          <ol className="flex flex-col gap-2 list-decimal">
-            {goleadores.map((goleador) => (
-              <li key={goleador.nombre} className="flex justify-between gap-2">
-                {' '}
-                {mapaJugadores.get(goleador.nombre)}
-                <span className="font-medium">{goleador.goles} gol(es)</span>                
-              </li>
-            ))}
-          </ol>
+          <div className="flex flex-col gap-2">
+            {goleadores.length > 0 ? (
+              <ol className="flex flex-col gap-2 list-decimal">
+                {goleadores.map((goleador) => (
+                  <li key={goleador.nombre} className="flex justify-between gap-2">
+                    {' '}
+                    {mapaJugadores.get(goleador.nombre)}
+                    <span className="font-medium">{goleador.goles} gol(es)</span>
+                  </li>
+                ))}
+              </ol>
+            ) : null}
+            {autogoles.length > 0 ? (
+              <div>
+                <h3 className="font-bold mb-1 mt-2">Autogoles</h3>
+                <ol className="flex flex-col gap-2 list-decimal list-inside">
+                  {autogoles.map((goleador) => (
+                    <li key={goleador.nombre} className="flex justify-between gap-2">
+                      {' '}
+                      {mapaJugadores.get(goleador.nombre)}
+                      <span className="font-medium">{goleador.goles} autogol(es)</span>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            ) : null}
+          </div>
         )}
       </Card>
       <Card className="text-neutral-800">

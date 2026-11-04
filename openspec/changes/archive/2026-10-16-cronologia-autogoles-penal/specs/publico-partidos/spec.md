@@ -1,0 +1,56 @@
+## MODIFIED Requirements
+
+### Requirement: Lista y ficha de partido
+The system SHALL list partidos (filterable by liga and estado) and show a public match view with equipos, fecha, fase, estado, calculated marcador, convocatoria por equipo, shootout if present, and goal list. Each row in the public partido list SHALL display the calculated local and visiting goal totals alongside the equipos, stacked (equipos one per line, large marcador at right, fase/fecha/badge on a second line). The liga fixture SHALL offer estado filter chips (Todos | En juego | Programados | Finalizados | Suspendidos) keeping date order. The public partido detail SHALL display a `Convocatoria` section above `Goleadores`, with local and visiting equipos in two columns; ausente players SHALL remain visible, subdued and marked as ausente. A `programado`, `en_juego` or `finalizado` partido SHALL show a WhatsApp share icon-link at the right end of the match-date row, opening `https://wa.me/?text=<encoded>` with a message matching the estado; the button SHALL NOT appear on `suspendido` partidos. The `programado` message SHALL be a `LOCAL vs VISITA` line (never `0 - 0`), a `{Liga/Copa} · {fecha}` line, and a back-link to the partido, with no goals section. The `en_juego` message SHALL start with an `EN VIVO {minuto}' — LOCAL {l} - {v} VISITA` line (minute snapshot at render time), followed by `{Liga/Copa} · {fecha}` and then the same body as a finalizado message. A finished partido (finalizado) message SHALL carry the formatted resultado: `LOCAL {l} - {v} VISITA` line, `{Liga/Copa} · {fecha}` line, goals (`Goles:` with `- {count} {name}: ({minutes})` per player, or `- {count} {name}` when no event has a minute; player cards as `TA:` and `TR:` lines ordered alphabetically, `Penales:` line when shootout exists, `Sin goles.` for 0-0), and a back-link to the partido. No message SHALL include the convocatoria. The public cronología SHALL show an adjustable-size ball icon (instead of a Badge) for gol and penal, an autogol-specific icon for autogol and a yellow/red card icon with accessible label for `amarilla`/`roja`, each with minute when present; autogol and penal rows SHALL show an `AG` or `P` badge immediately after the icon and before the minute. The `Goleadores` section SHALL include a sub-list of autogoles ordered by count, with a heading `Autogoles`.
+
+#### Scenario: Visitor opens match
+- **WHEN** a visitor opens `/partidos/:id`
+- **THEN** they see marcador, scorer list with minute when present, and penales score without attributing them to players.
+
+#### Scenario: Visitor sees scores in liga list
+- **WHEN** a visitor opens a liga's Partidos list containing a completed scoring match
+- **THEN** that match row displays its calculated local and visiting goal totals without requiring the visitor to open the match detail.
+
+#### Scenario: Visitor sees convocatoria by equipo
+- **WHEN** a visitor opens `/partidos/:id` for a partido with convocatorias for both equipos
+- **THEN** they see local and visiting columns above `Goleadores`, each showing its equipo name and convocados.
+
+#### Scenario: Ausente players remain marked
+- **WHEN** a visitor opens `/partidos/:id` for a partido with an ausente convocado
+- **THEN** that player remains visible, subdued and marked as ausente.
+
+#### Scenario: Empty convocatoria states
+- **WHEN** a visitor opens `/partidos/:id` without convocatorias, or with one equipo lacking convocatorias
+- **THEN** the empty card or equipo column indicates that no convocatoria or players are available, as applicable.
+
+#### Scenario: Filter fixture by estado
+- **WHEN** a visitor selects "En juego" in the fixture filter
+- **THEN** only `en_juego` partidos are listed, still ordered by fecha.
+
+#### Scenario: Share finished match on WhatsApp
+- **WHEN** a visitor opens a finalizado `/partidos/:id` and activates Compartir
+- **THEN** `wa.me` opens with the formatted resultado (marcador, liga/fecha, goles, back-link).
+
+#### Scenario: Share programmed match on WhatsApp
+- **WHEN** a visitor opens a programado `/partidos/:id` and activates Compartir
+- **THEN** `wa.me` opens with `LOCAL vs VISITA`, liga/fecha and back-link, with no score and no goals section; the button is absent on suspendido partidos.
+
+#### Scenario: Share live match on WhatsApp
+- **WHEN** a visitor opens an en_juego `/partidos/:id` and activates Compartir
+- **THEN** `wa.me` opens with an `EN VIVO {minuto}'` header line plus the same goals body as a finalizado message.
+
+#### Scenario: Public cronología shows cards
+- **WHEN** a visitor opens a match whose cronología has a gol and a roja
+- **THEN** the gol row shows the ball icon and the card row shows the red card icon, each with minute when present.
+
+#### Scenario: Public cronología shows autogol badge
+- **WHEN** a visitor opens a match whose cronología has an autogol
+- **THEN** the autogol row shows the autogol icon and an `AG` badge after the icon and before the minute.
+
+#### Scenario: Public cronología shows penal badge
+- **WHEN** a visitor opens a match whose cronología has a penal
+- **THEN** the penal row shows the ball icon and a `P` badge after the icon and before the minute.
+
+#### Scenario: Partido page shows autogoles sub-list
+- **WHEN** a visitor opens a match that has registered autogoles
+- **THEN** the Goleadores card shows an `Autogoles` sub-list with players and their autogol count, ordered descending.

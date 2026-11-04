@@ -3,6 +3,7 @@ import type { Evento } from "../api/types";
 import { SoccerBall } from "./icons/SoccerBall";
 import { TarjetaAmarillaIcon } from "./icons/TarjetaAmarillaIcon";
 import { TarjetaRojaIcon } from "./icons/TarjetaRojaIcon";
+import { AutogolIcon } from "./icons/AutogolIcon";
 
 const ETIQUETA: Record<Evento["tipo"], string> = {
   gol: "Gol",
@@ -17,9 +18,10 @@ export function etiquetaEvento(tipo: Evento["tipo"]): string {
   return ETIQUETA[tipo];
 }
 
-/** Ícono del tipo de evento: pelota para goles, tarjeta para amarilla/roja. Tamaño vía className. */
+/** Ícono del tipo de evento: pelota para gol, autogol/penal con distintivo, tarjeta para amarilla/roja. */
 export function IconoEvento({ tipo, className }: { tipo: Evento["tipo"]; className?: string }): JSX.Element {
   if (tipo === "amarilla") return <TarjetaAmarillaIcon className={className} />;
   if (tipo === "roja") return <TarjetaRojaIcon className={className} />;
+  if (tipo === "autogol") return <AutogolIcon className={className} />;
   return <SoccerBall className={className} />;
 }

@@ -44,6 +44,8 @@ export function Cronologia({ eventos, nombreJugador, nombreEquipo, inicioEn, fin
           <span className="text-sm font-medium flex items-center gap-2">
             {nombreJugador(e.jugadorId)}
             <IconoEvento tipo={e.tipo} className="h-5 w-5" />
+            {e.tipo === "autogol" ? <span className="text-xs font-bold bg-energia-400 text-cancha-950 px-1.5 py-0.5 rounded">AG</span> : null}
+            {e.tipo === "penal" ? <span className="text-xs font-bold bg-red-600 text-white px-1.5 py-0.5 rounded">P</span> : null}
             {e.minuto !== null ? `${String(e.minuto)}'` : ""}
           </span>
           <span className="text-sm text-stone-500">({nombreEquipo(e.equipoId)})</span>

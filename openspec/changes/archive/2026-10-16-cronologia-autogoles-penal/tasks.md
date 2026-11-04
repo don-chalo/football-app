@@ -1,0 +1,7 @@
+- [x] 1. `AutogolIcon` nuevo en `acsed-web/src/components/icons/AutogolIcon.tsx`
+- [x] 2. `PenalIcon` eliminado (sin uso); `penal` usa `SoccerBall` en `EventoIcono.tsx`
+- [x] 3. `EventoIcono.tsx`: autogol → AutogolIcon, penal → SoccerBall
+- [x] 4. `Cronologia.tsx`: badge AG/P después del ícono y antes del minuto en filas de evento
+- [x] 5. `PartidoPage.tsx`: sub-listado de Autogoles dentro de la card Goleadores (Opción B)
+- [x] 6. Tests: todos pasan (112/112)
+- [x] 7. Gates: tsc, lint (solo errores pre-existentes), build
