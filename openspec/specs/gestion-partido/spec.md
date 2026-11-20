@@ -64,3 +64,22 @@ The workspace of a `programado` partido SHALL offer "Suspender" with inline conf
 #### Scenario: Suspend with confirm
 - **WHEN** an admin confirms Suspender on a `programado` partido
 - **THEN** the estado becomes `suspendido` and the workspace loses its action buttons.
+
+### Requirement: Pantalla activa durante partido en juego
+El workspace de un partido `en_juego` SHALL solicitar un wake lock de pantalla para evitar que el móvil se bloquee mientras el planillero carga goles o tarjetas. El lock SHALL adquirirse al entrar en `en_juego`, liberarse al cambiar a `programado`, `finalizado` o `suspendido`, y re-adquirirse si el partido vuelve a `en_juego` tras estar pausado. El lock SHALL liberarse al salir de la pantalla o al ocultar la pestaña. La página SHALL no fallar si el navegador no soporta `navigator.wakeLock` (iOS, Firefox, contexto inseguro): el comportamiento degradado es simplemente no mantener la pantalla activa.
+
+#### Scenario: Pantalla se mantiene en juego
+- **WHEN** un admin pone un partido en juego en la pantalla de gestión
+- **THEN** se solicita un wake lock de pantalla y la pantalla permanece activa
+
+#### Scenario: Pantalla se libera al finalizar
+- **WHEN** un admin finaliza un partido en juego
+- **THEN** el wake lock se libera
+
+#### Scenario: Pantalla se libera al suspender
+- **WHEN** un admin suspende un partido en juego
+- **THEN** el wake lock se libera
+
+#### Scenario: Sin wake lock en navegador sin soporte
+- **WHEN** un admin abre un partido en juego en un navegador que no soporta `navigator.wakeLock`
+- **THEN** la página renderiza sin error y no mantiene la pantalla activa

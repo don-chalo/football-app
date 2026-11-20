@@ -1,0 +1,12 @@
+- [x] 1. `useWakeLock` hook en `acsed-web/src/hooks/useWakeLock.ts`
+  - [x] 1.1 Adquirir `navigator.wakeLock.request('screen')` cuando `enabled` es true
+  - [x] 1.2 Liberar sentinel en cleanup y cuando `enabled` pasa a false
+  - [x] 1.3 Manejar `visibilitychange` (soltar al ocultar, re-adquirir al volver)
+  - [x] 1.4 try/catch silencioso si API no existe o request falla (iOS, Firefox)
+- [x] 2. Integrar en `PartidoManagePage.tsx`
+  - [x] 2.1 `enabled = estado === "en_juego" && !pausaDesde`
+  - [x] 2.2 Lock se adquiere al entrar en juego, se libera al finalizar/suspender/salir
+- [x] 3. Tests en `useWakeLock.test.ts`
+  - [x] 3.1 No lanza si `navigator.wakeLock` no existe
+  - [x] 3.2 No lanza si el request falla
+- [x] 4. Gates: `tsc`, `lint`, suite completa, `build`
