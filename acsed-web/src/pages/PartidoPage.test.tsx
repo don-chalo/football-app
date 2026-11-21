@@ -21,6 +21,7 @@ function detalle(convocatorias: PartidoDetalle["convocatorias"]): PartidoDetalle
     pausaDesde: null,
     pausaAcumSeg: 0,
     finEn: null,
+    mvpJugadorId: null,
     createdBy: null,
     createdAt: null,
     marcador: { local: 0, visita: 0 },

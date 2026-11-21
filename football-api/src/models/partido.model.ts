@@ -18,6 +18,7 @@ export interface PartidoDoc extends Document {
   pausaAcumSeg: number;
   finEn: Date | null;
   createdBy: CreatedBy | null;
+  mvpJugadorId: Types.ObjectId | null;
 }
 
 const partidoSchema = new Schema<PartidoDoc>(
@@ -37,6 +38,7 @@ const partidoSchema = new Schema<PartidoDoc>(
     pausaAcumSeg: { type: Number, default: 0, min: 0 },
     finEn: { type: Date, default: null },
     createdBy: { type: createdBySchema, default: null },
+    mvpJugadorId: { type: Schema.Types.ObjectId, ref: "Jugador", default: null },
   },
   { timestamps: true },
 );

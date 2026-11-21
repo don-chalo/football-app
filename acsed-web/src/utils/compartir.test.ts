@@ -31,6 +31,7 @@ function detalle(eventos: Evento[], penales: boolean): PartidoDetalle {
     pausaDesde: null,
     pausaAcumSeg: 0,
     finEn: "2026-10-12T16:45:00Z",
+    mvpJugadorId: null,
     createdBy: null,
     createdAt: null,
     marcador: { local: 2, visita: 1 },

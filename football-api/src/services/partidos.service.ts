@@ -11,7 +11,7 @@ export interface Deps {
   partidos: MongoosePartidosRepo;
   ligas: Pick<MongooseLigasRepo, "findById">;
   equipos: Pick<MongooseEquiposRepo, "findById">;
-  convocatorias: Pick<MongooseConvocatoriasRepo, "listByPartido">;
+  convocatorias: Pick<MongooseConvocatoriasRepo, "listByPartido" | "findByPartidoJugador">;
   eventos: Pick<MongooseEventosRepo, "listByPartido" | "listByPartidos">;
 }
 
@@ -81,7 +81,7 @@ export function createPartidosService(d: Deps) {
         p.localId,
         p.visitaId,
       );
-      return { ...p, marcador, convocatorias: conv, eventos: evs };
+      return { ...p, marcador, convocatorias: conv, eventos: evs, mvpJugadorId: p.mvpJugadorId ?? null };
     },
 
     async cambiarEstado(id: string, estado: EstadoPartido): Promise<Partido> {
@@ -174,5 +174,25 @@ export function createPartidosService(d: Deps) {
     async remove(id: string): Promise<void> {
       if (!(await d.partidos.remove(id))) throw notFound("Partido");
     },
+    // Registrar o quitar el MVP
+    async registrarMvp(id: string, jugadorId: string | null): Promise<Partido> {
+      const p = await d.partidos.findById(id);
+      if (!p) throw notFound("Partido");
+      if (!jugadorId) {
+        // quitar el MVP
+        const quitado = await d.partidos.update(id, { mvpJugadorId: null });
+        if (!quitado) throw notFound("Partido");
+        return quitado;
+      }
+      if (p.estado !== "finalizado") throw unprocessable("Solo se puede registrar el MVP de un partido finalizado.");
+      // validar que el jugador está convocado y no ausente
+      const conv = await d.convocatorias.findByPartidoJugador(id, jugadorId);
+      if (!conv) throw unprocessable("Solo se puede elegir como MVP a un jugador convocado al partido.");
+      if (conv.estado === "ausente") throw unprocessable("Un jugador ausente no puede ser MVP.");
+      const actualizado = await d.partidos.update(id, { mvpJugadorId: jugadorId });
+      if (!actualizado) throw notFound("Partido");
+      return actualizado;
+    },
   };
 }
+

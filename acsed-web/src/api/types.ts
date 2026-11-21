@@ -76,6 +76,7 @@ export interface PartidoDetalle {
   pausaDesde: string | null;
   pausaAcumSeg: number;
   finEn: string | null;
+  mvpJugadorId: string | null;
   createdBy: CreatedBy | null;
   createdAt: string | null;
   marcador: { local: number; visita: number };

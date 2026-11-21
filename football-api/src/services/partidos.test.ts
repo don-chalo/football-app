@@ -6,6 +6,7 @@ import type { MongooseConvocatoriasRepo, MongooseEventosRepo } from "../reposito
 import type { MongoosePartidosRepo } from "../repositories/partidos.repository";
 
 function setup() {
+  const convocatorias = new FakeConvocatorias();
   const ligas = new FakeLigas() as unknown as MongooseLigasRepo;
   const equipos = new FakeEquipos() as unknown as MongooseEquiposRepo;
   const partidos = new FakePartidos() as unknown as MongoosePartidosRepo;
@@ -14,10 +15,10 @@ function setup() {
     partidos,
     ligas,
     equipos,
-    convocatorias: new FakeConvocatorias() as unknown as MongooseConvocatoriasRepo,
+    convocatorias: convocatorias as unknown as MongooseConvocatoriasRepo,
     eventos,
   });
-  return { ligas: ligas as unknown as FakeLigas, equipos: equipos as unknown as FakeEquipos, partidos, eventos: eventos as unknown as FakeEventos, svc };
+  return { ligas: ligas as unknown as FakeLigas, equipos: equipos as unknown as FakeEquipos, partidos, eventos: eventos as unknown as FakeEventos, svc, convocatorias };
 }
 
 describe("partidos", () => {
@@ -163,3 +164,83 @@ describe("partidos", () => {
     expect(reanudado.pausaDesde).toBeNull();
     expect(reanudado.pausaAcumSeg).toBeGreaterThanOrEqual(0);
   });
+
+describe("MVP del partido", () => {
+  beforeEach(() => resetIds());
+
+  async function partidoConConvocados() {
+    const env = setup();
+    const liga = await (env.ligas as unknown as { create(d: never): Promise<{ id: string }> }).create({ nombre: "L", formato: "liga" } as never);
+    const a = await env.equipos.create("A");
+    const b = await env.equipos.create("B");
+    const p = await env.svc.create({ ligaId: liga.id, localId: a.id, visitaId: b.id, fecha: "2026-03-01T15:00:00Z" });
+    const convocado = "000000000000000000000101";
+    const ausente = "000000000000000000000102";
+    await env.convocatorias.create({ partidoId: p.id, jugadorId: convocado, equipoId: a.id, estado: "convocado" } as never);
+    await env.convocatorias.create({ partidoId: p.id, jugadorId: ausente, equipoId: b.id, estado: "ausente" } as never);
+    return { ...env, partido: p, convocado, ausente };
+  }
+
+  it("asigna el MVP a un convocado en partido finalizado", async () => {
+    const { svc, partido, convocado } = await partidoConConvocados();
+    await svc.cambiarEstado(partido.id, "en_juego");
+    await svc.cambiarEstado(partido.id, "finalizado");
+    const r = await svc.registrarMvp(partido.id, convocado);
+    expect(r.mvpJugadorId).toBe(convocado);
+    const detalle = await svc.detalle(partido.id);
+    expect(detalle.mvpJugadorId).toBe(convocado);
+  });
+
+  it("el último MVP guardado reemplaza al anterior", async () => {
+    const { svc, partido, convocado, convocatorias } = await partidoConConvocados();
+    await svc.cambiarEstado(partido.id, "en_juego");
+    await svc.cambiarEstado(partido.id, "finalizado");
+    const otro = "000000000000000000000103";
+    await convocatorias.create({ partidoId: partido.id, jugadorId: otro, equipoId: partido.localId, estado: "convocado" } as never);
+    await svc.registrarMvp(partido.id, convocado);
+    const r = await svc.registrarMvp(partido.id, otro);
+    expect(r.mvpJugadorId).toBe(otro);
+  });
+
+  it("quitar el MVP deja el partido sin MVP", async () => {
+    const { svc, partido, convocado } = await partidoConConvocados();
+    await svc.cambiarEstado(partido.id, "en_juego");
+    await svc.cambiarEstado(partido.id, "finalizado");
+    await svc.registrarMvp(partido.id, convocado);
+    const r = await svc.registrarMvp(partido.id, null);
+    expect(r.mvpJugadorId).toBeNull();
+  });
+
+  it("rechaza el MVP si el partido no está finalizado (422 con mensaje)", async () => {
+    const { svc, partido, convocado } = await partidoConConvocados();
+    await expect(svc.registrarMvp(partido.id, convocado)).rejects.toMatchObject({
+      status: 422,
+      message: "Solo se puede registrar el MVP de un partido finalizado.",
+    });
+  });
+
+  it("rechaza un jugador ausente (422 con mensaje)", async () => {
+    const { svc, partido, ausente } = await partidoConConvocados();
+    await svc.cambiarEstado(partido.id, "en_juego");
+    await svc.cambiarEstado(partido.id, "finalizado");
+    await expect(svc.registrarMvp(partido.id, ausente)).rejects.toMatchObject({
+      status: 422,
+      message: "Un jugador ausente no puede ser MVP.",
+    });
+  });
+
+  it("rechaza un jugador no convocado (422 con mensaje)", async () => {
+    const { svc, partido } = await partidoConConvocados();
+    await svc.cambiarEstado(partido.id, "en_juego");
+    await svc.cambiarEstado(partido.id, "finalizado");
+    await expect(svc.registrarMvp(partido.id, "000000000000000000000999")).rejects.toMatchObject({
+      status: 422,
+      message: "Solo se puede elegir como MVP a un jugador convocado al partido.",
+    });
+  });
+
+  it("partido inexistente 404", async () => {
+    const { svc } = setup();
+    await expect(svc.registrarMvp("000000000000000000000099", null)).rejects.toMatchObject({ status: 404 });
+  });
+});

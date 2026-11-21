@@ -18,6 +18,7 @@ function map(d: {
   pausaDesde: Date | null;
   pausaAcumSeg?: number;
   finEn: Date | null;
+  mvpJugadorId?: Types.ObjectId | null;
   createdBy?: RawCreatedBy | null;
   createdAt?: Date;
 }): Partido {
@@ -37,6 +38,7 @@ function map(d: {
     pausaDesde: d.pausaDesde ?? null,
     pausaAcumSeg: d.pausaAcumSeg ?? 0,
     finEn: d.finEn ?? null,
+    mvpJugadorId: d.mvpJugadorId ? d.mvpJugadorId.toHexString() : null,
     ...mapAudit(d),
   };
 }
@@ -62,6 +64,7 @@ export type PartidoPatch = Partial<{
   pausaDesde: Date | null;
   pausaAcumSeg: number;
   finEn: Date | null;
+  mvpJugadorId: string | null;
 }>;
 
 export class MongoosePartidosRepo {

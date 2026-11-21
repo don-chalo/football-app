@@ -21,6 +21,7 @@ const detalle: PartidoDetalle = {
   pausaDesde: null,
   pausaAcumSeg: 0,
   finEn: null,
+  mvpJugadorId: null,
   createdBy: null,
   createdAt: null,
   marcador: { local: 0, visita: 0 },
@@ -90,7 +91,7 @@ describe("convocatoria unificada", () => {
 
     await user.click(await screen.findByText("Juan"));
     expect(await screen.findByText("Ausente")).toBeInTheDocument();
-    expect(screen.getByText("Quitar")).toBeInTheDocument();
+    expect(screen.getByText("Desconvocar")).toBeInTheDocument();
     expect(screen.queryByText("GOL")).not.toBeInTheDocument();
     vi.unstubAllGlobals();
   });

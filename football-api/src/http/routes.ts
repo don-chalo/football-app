@@ -13,7 +13,7 @@ import {
   requireLigaAccess,
   type ScopeDeps,
 } from "./middleware/scope";
-import { estadoSchema, pausaSchema, eventoPatchSchema, eventoSchema, convocatoriaBodySchema, convocatoriaPatchSchema, ligaPatchSchema, ligaSchema, loginSchema, nombreSchema, objectId, partidoCreateSchema, partidoPatchSchema, userCreateSchema, userPatchSchema } from "./schemas";
+import { estadoSchema, pausaSchema, eventoPatchSchema, eventoSchema, convocatoriaBodySchema, convocatoriaPatchSchema, ligaPatchSchema, ligaSchema, loginSchema, nombreSchema, objectId, partidoCreateSchema, partidoPatchSchema, userCreateSchema, userPatchSchema, mvpSchema } from "./schemas";
 import type { Services } from "./services";
 import type { Actor, Role } from "../repositories/types";
 
@@ -201,6 +201,11 @@ export function buildRouter(s: Services, deps: RouterDeps): Router {
   r.patch("/partidos/:id", ...scope(ligaFromPartidoParam(deps, "id")), asyncHandler(async (req, res) => {
     const body = partidoPatchSchema.parse(req.body);
     res.json(await s.partidos.actualizar(parseId(idParam.parse(req.params).id), body));
+  }));
+  
+  r.put("/partidos/:id/mvp", ...scope(ligaFromPartidoParam(deps, "id")), conActor, asyncHandler(async (req, res) => {
+    const body = mvpSchema.parse(req.body);
+    res.json(await s.partidos.registrarMvp(parseId(idParam.parse(req.params).id), body.jugadorId));
   }));
   r.patch("/partidos/:id/estado", ...scope(ligaFromPartidoParam(deps, "id")), asyncHandler(async (req, res) => {
     const body = estadoSchema.parse(req.body);

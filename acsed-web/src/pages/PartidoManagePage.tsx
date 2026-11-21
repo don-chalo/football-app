@@ -73,6 +73,7 @@ export function PartidoManagePage(): JSX.Element {
           inicioEn={p.inicioEn}
           finEn={p.finEn}
           minutoFin={p.finEn ? minutoDePartido(p, Date.now()) : null}
+          mvpJugadorId={p.mvpJugadorId}
           nombreJugador={(jid) => mapaJugadores.get(jid) ?? jid}
           nombreEquipo={(eid) => mapaEquipos.get(eid) ?? eid}
           onCambio={detalle.refresh}

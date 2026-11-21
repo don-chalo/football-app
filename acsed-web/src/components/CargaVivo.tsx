@@ -1,5 +1,5 @@
 import { useMemo, useState, type JSX } from "react";
-import { mensajeError } from "../api/client";
+import { ApiError, mensajeError } from "../api/client";
 import { services } from "../api/services";
 import type { Convocatoria, EstadoPartido, Evento, TipoEvento } from "../api/types";
 import { Button, Input, Sheet, Toast } from "./ui";
@@ -40,6 +40,7 @@ interface Props {
   inicioEn: string | null;
   finEn: string | null;
   minutoFin: number | null;
+  mvpJugadorId: string | null;
   nombreJugador: (id: string) => string;
   nombreEquipo: (id: string) => string;
   onCambio: () => void;
@@ -50,7 +51,7 @@ interface Props {
  * (presentes y ausentes) por equipo, tap en jugador -> sheet con
  * goles (segun estado), Ausente/Quitar, y alta por equipo.
  */
-export function CargaVivo({ partidoId, estadoPartido, localId, visitaId, convocatorias, eventos, minutoAuto, inicioEn, finEn, minutoFin, nombreJugador, nombreEquipo, onCambio }: Props): JSX.Element {
+export function CargaVivo({ partidoId, estadoPartido, localId, visitaId, convocatorias, eventos, minutoAuto, inicioEn, finEn, minutoFin, mvpJugadorId, nombreJugador, nombreEquipo, onCambio }: Props): JSX.Element {
   type Hoja =
     | { modo: "agregar"; convocatoriaId: string; jugadorId: string; equipoId: string; convocado: boolean }
     | { modo: "quitar"; jugadorId: string }
@@ -67,6 +68,8 @@ export function CargaVivo({ partidoId, estadoPartido, localId, visitaId, convoca
   const [seleccion, setSeleccion] = useState<string[]>([]);
   const [filtro, setFiltro] = useState("");
   const [avisoAgregados, setAvisoAgregados] = useState<string | null>(null);
+  const [errorMvp, setErrorMvp] = useState<string | null>(null);
+  const [enviandoMvp, setEnviandoMvp] = useState(false);
 
   const catalogo = usePolling(() => services.jugadores.listar(), 60_000);
 
@@ -134,6 +137,22 @@ export function CargaVivo({ partidoId, estadoPartido, localId, visitaId, convoca
       setError(err);
     } finally {
       setEnviando(false);
+    }
+  }
+
+  async function registrarMvp(jugadorId: string | null): Promise<void> {
+    if (enviandoMvp) return;
+    setEnviandoMvp(true);
+    setErrorMvp(null);
+    try {
+      await services.partidos.registrarMvp(partidoId, jugadorId);
+      cerrarHoja();
+      onCambio();
+    } catch (err) {
+      // Errores de regla de negocio (422) muestran su mensaje; otros, un texto genérico.
+      setErrorMvp(err instanceof ApiError && err.status === 422 ? err.message : "No se pudo guardar el MVP.");
+    } finally {
+      setEnviandoMvp(false);
     }
   }
 
@@ -249,6 +268,7 @@ export function CargaVivo({ partidoId, estadoPartido, localId, visitaId, convoca
                       <span className="min-w-0 wrap-break-words">
                         <span>{nombreJugador(c.jugadorId)}</span>
                         {ausente ? <span> (ausente)</span> : null}
+                        {c.jugadorId === mvpJugadorId ? <span className="font-bold text-energia-600"> ⭐ MVP</span> : null}
                       </span>
                       {textoConteos(c.jugadorId) ? (
                         <span className="shrink-0 text-sm font-normal text-stone-500">{textoConteos(c.jugadorId)}</span>
@@ -412,6 +432,30 @@ export function CargaVivo({ partidoId, estadoPartido, localId, visitaId, convoca
               </>
             ) : null}
             {avisoQuitar ? <p className="text-red-700">{avisoQuitar}</p> : null}
+            {hoja.modo === "agregar" && estadoPartido === "finalizado" && hoja.convocado ? (
+              <div className="flex gap-2">
+                {hoja.jugadorId === mvpJugadorId ? (
+                  <button
+                    type="button"
+                    disabled={enviandoMvp}
+                    onClick={() => void registrarMvp(null)}
+                    className="min-h-11 flex-1 rounded-lg border border-neutral-300 px-2 text-sm disabled:opacity-50"
+                  >
+                    Quitar MVP
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={enviandoMvp}
+                    onClick={() => void registrarMvp(hoja.jugadorId)}
+                    className="min-h-11 flex-1 rounded-lg bg-energia-400 px-2 text-sm font-bold text-stone-900 disabled:opacity-50"
+                  >
+                    Marcar MVP
+                  </button>
+                )}
+              </div>
+            ) : null}
+            {errorMvp ? <p className="text-red-700">{errorMvp}</p> : null}
             {confirmarQuitar === hoja.convocatoriaId ? (
               <div className="flex gap-2">
                 <button
@@ -444,7 +488,7 @@ export function CargaVivo({ partidoId, estadoPartido, localId, visitaId, convoca
                   onClick={() => void quitar()}
                   className="min-h-11 flex-1 rounded-lg border border-neutral-300 px-2 text-red-700 text-sm"
                 >
-                  Quitar
+                  Desconvocar
                 </button>
               </div>
             )}

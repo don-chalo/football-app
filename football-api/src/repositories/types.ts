@@ -57,6 +57,7 @@ export interface Partido {
   pausaDesde: Date | null;
   pausaAcumSeg: number;
   finEn: Date | null;
+  mvpJugadorId: string | null;
   createdBy: CreatedBy | null;
   createdAt: Date | null;
 }

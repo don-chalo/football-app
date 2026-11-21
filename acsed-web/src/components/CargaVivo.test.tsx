@@ -36,6 +36,8 @@ describe("CargaVivo flujo crítico 2 taps", () => {
         inicioEn={null}
         finEn={null}
         minutoFin={null}
+
+        mvpJugadorId={null}
         convocatorias={conv}
         eventos={[]}
         nombreJugador={() => "Juan"}
@@ -83,6 +85,8 @@ describe("CargaVivo flujo crítico 2 taps", () => {
         inicioEn={null}
         finEn={null}
         minutoFin={null}
+
+        mvpJugadorId={null}
         convocatorias={conv}
         eventos={[]}
         nombreJugador={() => "Juan"}
@@ -128,6 +132,8 @@ describe("CargaVivo flujo crítico 2 taps", () => {
         inicioEn={null}
         finEn={null}
         minutoFin={null}
+
+        mvpJugadorId={null}
         convocatorias={convocadosLocal}
         eventos={[ev("ev1", "j1", "gol", 23), ev("ev2", "j2", "amarilla", 45)]}
         nombreJugador={(id) => ({ j1: "Juan", j2: "Pedro" })[id] ?? id}
@@ -175,6 +181,8 @@ describe("CargaVivo compacta", () => {
         inicioEn={null}
         finEn={null}
         minutoFin={null}
+
+        mvpJugadorId={null}
         convocatorias={convocados}
         eventos={[evento("ev1", "j1", "gol"), evento("ev2", "j1", "gol"), evento("ev3", "j1", "penal"), evento("ev4", "j2", "autogol")]}
         nombreJugador={(id) => nombres[id] ?? id}
@@ -205,6 +213,8 @@ describe("CargaVivo compacta", () => {
         inicioEn={null}
         finEn={null}
         minutoFin={null}
+
+        mvpJugadorId={null}
         convocatorias={convocados}
         eventos={[evento("ev1", "j1", "gol"), evento("ev2", "j2", "penal")]}
         nombreJugador={(id) => nombres[id] ?? id}
@@ -246,6 +256,8 @@ describe("CargaVivo compacta", () => {
         inicioEn={null}
         finEn={null}
         minutoFin={null}
+
+        mvpJugadorId={null}
         convocatorias={convocados}
         eventos={[evento("ev2", "j2", "penal")]}
         nombreJugador={(id) => nombres[id] ?? id}
@@ -271,6 +283,8 @@ describe("CargaVivo compacta", () => {
         inicioEn={null}
         finEn={null}
         minutoFin={null}
+
+        mvpJugadorId={null}
         convocatorias={convocados}
         eventos={[evento("ev1", "j1", "gol", 23), evento("ev2", "j1", "penal")]}
         nombreJugador={(id) => nombres[id] ?? id}
@@ -298,6 +312,8 @@ describe("CargaVivo compacta", () => {
         inicioEn={null}
         finEn={null}
         minutoFin={null}
+
+        mvpJugadorId={null}
         convocatorias={convocados}
         eventos={[evento("ev1", "j1", "amarilla", 45)]}
         nombreJugador={(id) => nombres[id] ?? id}
@@ -325,6 +341,8 @@ describe("CargaVivo compacta", () => {
         inicioEn={null}
         finEn={null}
         minutoFin={null}
+
+        mvpJugadorId={null}
         convocatorias={convocados}
         eventos={[evento("ev1", "j1", "gol")]}
         nombreJugador={(id) => nombres[id] ?? id}
@@ -353,6 +371,8 @@ describe("CargaVivo compacta", () => {
         inicioEn={null}
         finEn={null}
         minutoFin={null}
+
+        mvpJugadorId={null}
         convocatorias={convocados}
         eventos={[evento("ev1", "j1", "gol"), evento("ev2", "j2", "penal")]}
         nombreJugador={(id) => nombres[id] ?? id}
@@ -405,6 +425,8 @@ describe("CargaVivo lista unificada", () => {
         inicioEn={null}
         finEn={null}
         minutoFin={null}
+
+        mvpJugadorId={null}
         convocatorias={base}
         eventos={[]}
         nombreJugador={(id) => nombres[id] ?? id}
@@ -424,7 +446,7 @@ describe("CargaVivo lista unificada", () => {
     await user.click(screen.getByText("Pedro"));
     expect(await screen.findByText("GOL")).toBeInTheDocument();
     expect(screen.getByText("Presente")).toBeInTheDocument();
-    expect(screen.getByText("Quitar")).toBeInTheDocument();
+    expect(screen.getByText("Desconvocar")).toBeInTheDocument();
 
     await user.click(screen.getByText("Presente"));
     await waitFor(() => {
@@ -446,7 +468,7 @@ describe("CargaVivo lista unificada", () => {
     renderUni("en_juego", onCambio);
 
     await user.click(screen.getByText("Juan"));
-    await user.click(await screen.findByText("Quitar"));
+    await user.click(await screen.findByText("Desconvocar"));
     await user.click(screen.getByText("Confirmar"));
 
     await waitFor(() => {
@@ -473,6 +495,8 @@ describe("CargaVivo lista unificada", () => {
         inicioEn={null}
         finEn={null}
         minutoFin={null}
+
+        mvpJugadorId={null}
         convocatorias={base}
         eventos={[golJ1]}
         nombreJugador={(id) => nombres[id] ?? id}
@@ -482,7 +506,7 @@ describe("CargaVivo lista unificada", () => {
     );
 
     await user.click(screen.getByText("Juan"));
-    await user.click(await screen.findByText("Quitar"));
+    await user.click(await screen.findByText("Desconvocar"));
     await user.click(screen.getByText("Confirmar"));
 
     await waitFor(() => {
@@ -549,7 +573,7 @@ describe("CargaVivo lista unificada", () => {
 
     await user.click(screen.getByText("Juan"));
     expect(await screen.findByText("Ausente")).toBeInTheDocument();
-    expect(screen.getByText("Quitar")).toBeInTheDocument();
+    expect(screen.getByText("Desconvocar")).toBeInTheDocument();
     expect(screen.queryByText("GOL")).not.toBeInTheDocument();
     expect(screen.getAllByText("+ Agregar jugador")).toHaveLength(2);
     vi.unstubAllGlobals();
@@ -571,6 +595,8 @@ describe("CargaVivo minuto automatico", () => {
         inicioEn="2026-03-01T15:00:00Z"
         finEn={null}
         minutoFin={null}
+
+        mvpJugadorId={null}
         convocatorias={conv}
         eventos={[]}
         nombreJugador={() => "Juan"}
@@ -607,6 +633,8 @@ describe("CargaVivo minuto automatico", () => {
         inicioEn="2026-03-01T15:00:00Z"
         finEn="2026-03-01T16:33:00Z"
         minutoFin={94}
+
+        mvpJugadorId={null}
         convocatorias={conv}
         eventos={[]}
         nombreJugador={() => "Juan"}
@@ -635,6 +663,8 @@ describe("CargaVivo suspendido", () => {
         inicioEn={null}
         finEn={null}
         minutoFin={null}
+
+        mvpJugadorId={null}
         convocatorias={conv}
         eventos={[]}
         nombreJugador={() => "Juan"}
@@ -650,5 +680,105 @@ describe("CargaVivo suspendido", () => {
     await user.click(fila as HTMLElement);
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     vi.unstubAllGlobals();
+  });
+});
+
+describe("CargaVivo MVP", () => {
+  const convMvp: Convocatoria[] = [
+    { id: "c1", partidoId: "p", jugadorId: "j1", equipoId: "e1", estado: "convocado", createdBy: null, createdAt: null },
+    { id: "c2", partidoId: "p", jugadorId: "j2", equipoId: "e1", estado: "ausente", createdBy: null, createdAt: null },
+  ];
+
+  function renderMvp(opts: { estado: "finalizado" | "en_juego"; mvp: string | null; fetchMock: ReturnType<typeof vi.fn> }) {
+    vi.stubGlobal("fetch", opts.fetchMock);
+    return render(
+      <CargaVivo
+        partidoId="p"
+        estadoPartido={opts.estado}
+        localId="e1"
+        visitaId="e2"
+        minutoAuto={null}
+        inicioEn={null}
+        finEn={null}
+        minutoFin={null}
+        mvpJugadorId={opts.mvp}
+        convocatorias={convMvp}
+        eventos={[]}
+        nombreJugador={(id) => (id === "j1" ? "Juan" : "Pedro")}
+        nombreEquipo={() => "Los Pibes"}
+        onCambio={vi.fn()}
+      />,
+    );
+  }
+
+  function mockMvp(status = 200, body: unknown = { id: "p" }) {
+    return vi.fn(async (_url: string | URL, init?: RequestInit): Promise<Response> => {
+      if (init?.method === "PUT") {
+        return new Response(JSON.stringify(body), { status });
+      }
+      return new Response("[]", { status: 200 });
+    });
+  }
+
+  it("muestra 'Marcar MVP' en partido finalizado para convocado presente", async () => {
+    const user = userEvent.setup();
+    renderMvp({ estado: "finalizado", mvp: null, fetchMock: mockMvp() });
+    await user.click(screen.getByText("Juan"));
+    expect(screen.getByRole("button", { name: "Marcar MVP" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Quitar MVP" })).not.toBeInTheDocument();
+  });
+
+  it("no muestra botones MVP fuera de finalizado", async () => {
+    const user = userEvent.setup();
+    renderMvp({ estado: "en_juego", mvp: null, fetchMock: mockMvp() });
+    await user.click(screen.getByText("Juan"));
+    expect(screen.queryByRole("button", { name: "Marcar MVP" })).not.toBeInTheDocument();
+  });
+
+  it("no muestra botones MVP para un jugador ausente", async () => {
+    const user = userEvent.setup();
+    renderMvp({ estado: "finalizado", mvp: null, fetchMock: mockMvp() });
+    await user.click(screen.getByText("Pedro"));
+    expect(screen.queryByRole("button", { name: "Marcar MVP" })).not.toBeInTheDocument();
+  });
+
+  it("muestra la marca ⭐ MVP en el jugador MVP", () => {
+    renderMvp({ estado: "finalizado", mvp: "j1", fetchMock: mockMvp() });
+    expect(screen.getByText(/⭐ MVP/)).toBeInTheDocument();
+  });
+
+  it("'Quitar MVP' envía PUT con jugadorId null", async () => {
+    const user = userEvent.setup();
+    const fetchMock = mockMvp();
+    renderMvp({ estado: "finalizado", mvp: "j1", fetchMock });
+    await user.click(screen.getByText("Juan"));
+    await user.click(screen.getByRole("button", { name: "Quitar MVP" }));
+    await waitFor(() => {
+      const put = fetchMock.mock.calls.find(([, init]) => (init as RequestInit | undefined)?.method === "PUT");
+      expect(put).toBeDefined();
+      expect(String(put?.[0])).toMatch(/\/partidos\/p\/mvp$/);
+      expect(JSON.parse(String((put?.[1] as RequestInit).body))).toEqual({ jugadorId: null });
+    });
+  });
+
+  it("muestra el mensaje de regla de negocio (422) y mantiene el panel abierto", async () => {
+    const user = userEvent.setup();
+    renderMvp({
+      estado: "finalizado",
+      mvp: null,
+      fetchMock: mockMvp(422, { code: "UNPROCESSABLE", message: "Solo se puede elegir como MVP a un jugador convocado al partido." }),
+    });
+    await user.click(screen.getByText("Juan"));
+    await user.click(screen.getByRole("button", { name: "Marcar MVP" }));
+    expect(await screen.findByText("Solo se puede elegir como MVP a un jugador convocado al partido.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Marcar MVP" })).toBeInTheDocument();
+  });
+
+  it("error no-422 muestra el texto genérico", async () => {
+    const user = userEvent.setup();
+    renderMvp({ estado: "finalizado", mvp: null, fetchMock: mockMvp(500, { error: "boom" }) });
+    await user.click(screen.getByText("Juan"));
+    await user.click(screen.getByRole("button", { name: "Marcar MVP" }));
+    expect(await screen.findByText("No se pudo guardar el MVP.")).toBeInTheDocument();
   });
 });

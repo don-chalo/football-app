@@ -59,3 +59,5 @@ export const eventoSchema = z.object({
   metadata: z.unknown().optional(),
 });
 export const eventoPatchSchema = eventoSchema.partial();
+
+export const mvpSchema = z.object({ jugadorId: objectId.nullable() });
