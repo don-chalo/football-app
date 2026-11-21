@@ -4,6 +4,7 @@ import { services } from "../api/services";
 import type { Convocatoria, EstadoPartido, Evento, TipoEvento } from "../api/types";
 import { Button, Input, Sheet, Toast } from "./ui";
 import { Cronologia } from "./Cronologia";
+import { MVPIndicator } from "./MVPIndicator";
 import { usePolling } from "../hooks/usePolling";
 
 const TIPOS_GOL: Array<{ tipo: TipoEvento; txt: string }> = [
@@ -268,7 +269,7 @@ export function CargaVivo({ partidoId, estadoPartido, localId, visitaId, convoca
                       <span className="min-w-0 wrap-break-words">
                         <span>{nombreJugador(c.jugadorId)}</span>
                         {ausente ? <span> (ausente)</span> : null}
-                        {c.jugadorId === mvpJugadorId ? <span className="font-bold text-energia-600"> ⭐ MVP</span> : null}
+                        { c.jugadorId === mvpJugadorId && <MVPIndicator /> }
                       </span>
                       {textoConteos(c.jugadorId) ? (
                         <span className="shrink-0 text-sm font-normal text-stone-500">{textoConteos(c.jugadorId)}</span>

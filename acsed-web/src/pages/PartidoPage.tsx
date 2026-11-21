@@ -4,6 +4,7 @@ import * as _ from "lodash";
 import { services } from "../api/services";
 import { Badge, Card, Empty, ErrorMsg, Loading, Title, tonoPorEstado } from "../components/ui";
 import { Cronologia } from "../components/Cronologia";
+import { MVPIndicator } from "../components/MVPIndicator";
 import { BotonCompartir } from "../components/BotonCompartir";
 import { minutoDePartido } from "../hooks/useCronometro";
 import { useMapaEquipos, useMapaJugadores } from "../hooks/useNombres";
@@ -102,6 +103,7 @@ export function PartidoPage(): JSX.Element {
                       <li key={c.id} className={c.estado === "ausente" ? "text-stone-400" : ""}>
                         <span className="wrap-break-words">{mapaJugadores.get(c.jugadorId) ?? "?"}</span>
                         {c.estado === "ausente" ? <span> (ausente)</span> : null}
+                        { data.estado === "finalizado" && c.jugadorId === data.mvpJugadorId && <MVPIndicator /> }
                       </li>
                     ))}
                   </ul>

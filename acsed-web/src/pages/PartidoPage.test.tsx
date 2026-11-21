@@ -217,3 +217,42 @@ describe("cronometro en detalle publico", () => {
     vi.unstubAllGlobals();
   });
 });
+
+describe("MVP en la card de convocatoria (HU-MVP-02)", () => {
+  beforeEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("muestra ⭐ MVP junto al jugador MVP en partido finalizado", async () => {
+    const det = { ...detalle([convocatoria("c1", "j1", "e1", "convocado"), convocatoria("c2", "j2", "e2", "convocado")]), estado: "finalizado" as const, mvpJugadorId: "j2" };
+    vi.stubGlobal("fetch", mockFetch(det));
+    renderDetalle();
+
+    expect(await screen.findByText("Pedro")).toBeInTheDocument();
+    const badges = screen.getAllByText(/⭐ MVP/);
+    expect(badges).toHaveLength(1);
+    expect(screen.getByText("Pedro").closest("li")?.textContent).toContain("⭐ MVP");
+    expect(screen.getByText("Juan").closest("li")?.textContent).not.toContain("⭐ MVP");
+    vi.unstubAllGlobals();
+  });
+
+  it("no muestra distintivo si el partido no está finalizado", async () => {
+    const det = { ...detalle([convocatoria("c2", "j2", "e2", "convocado")]), mvpJugadorId: "j2" };
+    vi.stubGlobal("fetch", mockFetch(det));
+    renderDetalle();
+
+    expect(await screen.findByText("Pedro")).toBeInTheDocument();
+    expect(screen.queryByText(/⭐ MVP/)).not.toBeInTheDocument();
+    vi.unstubAllGlobals();
+  });
+
+  it("no muestra distintivo si no hay MVP registrado", async () => {
+    const det = { ...detalle([convocatoria("c2", "j2", "e2", "convocado")]), estado: "finalizado" as const, mvpJugadorId: null };
+    vi.stubGlobal("fetch", mockFetch(det));
+    renderDetalle();
+
+    expect(await screen.findByText("Pedro")).toBeInTheDocument();
+    expect(screen.queryByText(/⭐ MVP/)).not.toBeInTheDocument();
+    vi.unstubAllGlobals();
+  });
+});
