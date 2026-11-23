@@ -38,10 +38,10 @@ function mockFetch(det: PartidoDetalle) {
   return vi.fn(async (url: unknown): Promise<Response> => {
     const u = String(url);
     if (u.includes("/partidos/p1")) return new Response(JSON.stringify(det), { status: 200 });
-    if (u.endsWith("/equipos")) {
+    if ((u.endsWith("/equipos") || u.endsWith("/equipos/buscar"))) {
       return new Response(JSON.stringify([{ id: "e1", nombre: "Alfa" }, { id: "e2", nombre: "Beta" }]), { status: 200 });
     }
-    if (u.endsWith("/jugadores")) {
+    if ((u.endsWith("/jugadores") || u.endsWith("/jugadores/buscar"))) {
       return new Response(
         JSON.stringify([
           { id: "j1", nombre: "Juan" },
@@ -254,5 +254,33 @@ describe("MVP en la card de convocatoria (HU-MVP-02)", () => {
     expect(await screen.findByText("Pedro")).toBeInTheDocument();
     expect(screen.queryByText(/⭐ MVP/)).not.toBeInTheDocument();
     vi.unstubAllGlobals();
+  });
+});
+
+describe("estados de carga y error de nombres", () => {
+  beforeEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("muestra Cargando mientras no llegan los equipos", async () => {
+    const base = mockFetch(detalle([convocatoria("c1", "j1", "e1", "convocado")]));
+    vi.stubGlobal("fetch", vi.fn(async (url: unknown) => {
+      if (String(url).endsWith("/equipos/buscar")) return new Promise<Response>(() => {});
+      return base(url);
+    }));
+    renderDetalle();
+    expect(await screen.findByText("Cargando...")).toBeInTheDocument();
+    expect(screen.queryByText("Alfa")).not.toBeInTheDocument();
+  });
+
+  it("muestra error con Reintentar si falla el listado de jugadores", async () => {
+    const base = mockFetch(detalle([convocatoria("c1", "j1", "e1", "convocado")]));
+    vi.stubGlobal("fetch", vi.fn(async (url: unknown) => {
+      if (String(url).endsWith("/jugadores/buscar")) return new Response("boom", { status: 500 });
+      return base(url);
+    }));
+    renderDetalle();
+    expect(await screen.findByText("Reintentar")).toBeInTheDocument();
+    expect(screen.queryByText("Convocatoria")).not.toBeInTheDocument();
   });
 });

@@ -66,18 +66,22 @@ describe("servicios de dominio", () => {
     await s.equipos.listar();
     await s.equipos.crear("E");
     await s.equipos.borrar("e1");
+    await s.equipos.buscar(["e1", "e2"]);
     await s.jugadores.listar();
     await s.jugadores.crear("J");
     await s.jugadores.crearVarios(["A", "B"]);
     await s.jugadores.borrar("j1");
+    await s.jugadores.buscar(["j1"]);
     expect(llamadas).toEqual([
       { metodo: "GET", path: "/equipos" },
       { metodo: "POST", path: "/equipos", body: { nombre: "E" } },
       { metodo: "DELETE", path: "/equipos/e1" },
+      { metodo: "POST", path: "/equipos/buscar", body: { ids: ["e1", "e2"] } },
       { metodo: "GET", path: "/jugadores" },
       { metodo: "POST", path: "/jugadores", body: { nombre: "J" } },
       { metodo: "POST", path: "/jugadores/bulk", body: { nombres: ["A", "B"] } },
       { metodo: "DELETE", path: "/jugadores/j1" },
+      { metodo: "POST", path: "/jugadores/buscar", body: { ids: ["j1"] } },
     ]);
   });
 

@@ -3,6 +3,7 @@ import type { BulkResult, Jugador } from "./types";
 
 export interface JugadoresService {
   listar: () => Promise<Jugador[]>;
+  buscar: (ids: string[]) => Promise<Jugador[]>;
   crear: (nombre: string) => Promise<Jugador>;
   crearVarios: (nombres: string[]) => Promise<BulkResult>;
   borrar: (id: string) => Promise<void>;
@@ -11,6 +12,7 @@ export interface JugadoresService {
 export function createJugadoresService(http: HttpClient): JugadoresService {
   return {
     listar: () => http.get<Jugador[]>("/jugadores"),
+    buscar: (ids) => http.post<Jugador[]>("/jugadores/buscar", { ids }),
     crear: (nombre) => http.post<Jugador>("/jugadores", { nombre }),
     crearVarios: (nombres) => http.post<BulkResult>("/jugadores/bulk", { nombres }),
     borrar: (id) => http.del(`/jugadores/${id}`),

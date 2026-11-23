@@ -7,15 +7,15 @@ import { Cronologia } from "../components/Cronologia";
 import { MVPIndicator } from "../components/MVPIndicator";
 import { BotonCompartir } from "../components/BotonCompartir";
 import { minutoDePartido } from "../hooks/useCronometro";
-import { useMapaEquipos, useMapaJugadores } from "../hooks/useNombres";
+import { useNombresEquiposPartido, useNombresJugadoresPartido } from "../hooks/useNombres";
 import { usePolling } from "../hooks/usePolling";
 import { formatoFechaCorta } from "../utils/fecha";
 
 export function PartidoPage(): JSX.Element {
   const { id = "" } = useParams();
   const { data, error, loading, refresh } = usePolling(() => services.partidos.detalle(id), 12_000);
-  const mapaEquipos = useMapaEquipos();
-  const mapaJugadores = useMapaJugadores();
+  const jugadores = useNombresJugadoresPartido(data);
+  const equipos = useNombresEquiposPartido(data);
   const goleadores = _.orderBy(
     _.map(
       _.reduce(
@@ -51,6 +51,11 @@ export function PartidoPage(): JSX.Element {
   if (loading && !data) return <Loading />;
   if (error && !data) return <ErrorMsg error={error} onRetry={refresh} />;
   if (!data) return <Empty texto="Partido no encontrado." />;
+  const mapaJugadores = jugadores.mapa;
+  const mapaEquipos = equipos.mapa;
+  const errorNombres = jugadores.error ?? equipos.error;
+  if (errorNombres) return <ErrorMsg error={errorNombres} onRetry={jugadores.error ? jugadores.refresh : equipos.refresh} />;
+  if (!mapaJugadores || !mapaEquipos) return <Loading />;
   const locales = data.convocatorias.filter((c) => c.equipoId === data.localId);
   const visitas = data.convocatorias.filter((c) => c.equipoId === data.visitaId);
   const minutoFin = data.finEn ? minutoDePartido(data, Date.now()) : null;

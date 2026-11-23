@@ -35,7 +35,7 @@ function mockFetch(estado: string = "programado") {
   return vi.fn(async (url: unknown, init?: RequestInit): Promise<Response> => {
     const u = String(url);
     if (u.endsWith("/partidos/p1")) return new Response(JSON.stringify({ ...detalle, estado }), { status: 200 });
-    if (u.endsWith("/equipos")) {
+    if ((u.endsWith("/equipos") || u.endsWith("/equipos/buscar"))) {
       return new Response(
         JSON.stringify([
           { id: "e1", nombre: "Alfa" },
@@ -44,7 +44,7 @@ function mockFetch(estado: string = "programado") {
         { status: 200 },
       );
     }
-    if (u.endsWith("/jugadores")) {
+    if ((u.endsWith("/jugadores") || u.endsWith("/jugadores/buscar"))) {
       return new Response(JSON.stringify([{ id: "j1", nombre: "Juan" }]), { status: 200 });
     }
     if (u.endsWith("/ligas/l1")) {
@@ -115,10 +115,10 @@ describe("cronometro en gestion", () => {
           inicioEn: new Date(Date.now() - 65 * 60_000).toISOString(),
         }), { status: 200 });
       }
-      if (u.endsWith("/equipos")) {
+      if ((u.endsWith("/equipos") || u.endsWith("/equipos/buscar"))) {
         return new Response(JSON.stringify([{ id: "e1", nombre: "Alfa" }, { id: "e2", nombre: "Beta" }]), { status: 200 });
       }
-      if (u.endsWith("/jugadores")) {
+      if ((u.endsWith("/jugadores") || u.endsWith("/jugadores/buscar"))) {
         return new Response(JSON.stringify([{ id: "j1", nombre: "Juan" }]), { status: 200 });
       }
       return new Response("[]", { status: 200 });
@@ -130,10 +130,10 @@ describe("cronometro en gestion", () => {
     const fetchMock = vi.fn(async (url: unknown): Promise<Response> => {
       const u = String(url);
       if (u.endsWith("/partidos/p1")) return new Response(JSON.stringify({ ...detalle, fecha: futura }), { status: 200 });
-      if (u.endsWith("/equipos")) {
+      if ((u.endsWith("/equipos") || u.endsWith("/equipos/buscar"))) {
         return new Response(JSON.stringify([{ id: "e1", nombre: "Alfa" }, { id: "e2", nombre: "Beta" }]), { status: 200 });
       }
-      if (u.endsWith("/jugadores")) {
+      if ((u.endsWith("/jugadores") || u.endsWith("/jugadores/buscar"))) {
         return new Response(JSON.stringify([{ id: "j1", nombre: "Juan" }]), { status: 200 });
       }
       return new Response("[]", { status: 200 });
@@ -203,10 +203,10 @@ describe("finalizar con confirmacion", () => {
       if (u.endsWith("/partidos/p1")) {
         return new Response(JSON.stringify({ ...detalle, estado: "en_juego", inicioEn: new Date().toISOString() }), { status: 200 });
       }
-      if (u.endsWith("/equipos")) {
+      if ((u.endsWith("/equipos") || u.endsWith("/equipos/buscar"))) {
         return new Response(JSON.stringify([{ id: "e1", nombre: "Alfa" }, { id: "e2", nombre: "Beta" }]), { status: 200 });
       }
-      if (u.endsWith("/jugadores")) {
+      if ((u.endsWith("/jugadores") || u.endsWith("/jugadores/buscar"))) {
         return new Response(JSON.stringify([{ id: "j1", nombre: "Juan" }]), { status: 200 });
       }
       return new Response(JSON.stringify({ id: "p1" }), { status: 200 });
@@ -255,10 +255,10 @@ describe("compartir por WhatsApp en gestión", () => {
           { status: 200 },
         );
       }
-      if (u.endsWith("/equipos")) {
+      if ((u.endsWith("/equipos") || u.endsWith("/equipos/buscar"))) {
         return new Response(JSON.stringify([{ id: "e1", nombre: "Alfa" }, { id: "e2", nombre: "Beta" }]), { status: 200 });
       }
-      if (u.endsWith("/jugadores")) {
+      if ((u.endsWith("/jugadores") || u.endsWith("/jugadores/buscar"))) {
         return new Response(JSON.stringify([{ id: "j1", nombre: "Juan" }]), { status: 200 });
       }
       if (u.endsWith("/ligas/l1")) {
@@ -292,5 +292,27 @@ describe("compartir por WhatsApp en gestión", () => {
     expect(await screen.findByText("Convocatoria y goles")).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Compartir por WhatsApp" })).not.toBeInTheDocument();
     vi.unstubAllGlobals();
+  });
+});
+
+describe("estados de carga y error de nombres en gestion", () => {
+  beforeEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("muestra Cargando mientras el detalle no llega", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => new Promise<Response>(() => {})));
+    renderPage();
+    expect(await screen.findByText("Cargando...")).toBeInTheDocument();
+  });
+
+  it("muestra error con Reintentar si falla el listado de equipos", async () => {
+    const base = mockFetch();
+    vi.stubGlobal("fetch", vi.fn(async (url: unknown, init?: RequestInit) => {
+      if (String(url).endsWith("/equipos/buscar")) return new Response("boom", { status: 500 });
+      return base(url, init);
+    }));
+    renderPage();
+    expect(await screen.findByText("Reintentar")).toBeInTheDocument();
   });
 });

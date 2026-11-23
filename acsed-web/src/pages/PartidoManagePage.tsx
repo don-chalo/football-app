@@ -6,27 +6,32 @@ import type { EstadoPartido } from "../api/types";
 import { BotonCompartir } from "../components/BotonCompartir";
 import { CargaVivo } from "../components/CargaVivo";
 import { Cronometro } from "../components/Cronometro";
-import { Badge, Button, Card, Empty, ErrorMsg, Input, SkeletonFilas, Title, tonoPorEstado } from "../components/ui";
+import { Badge, Button, Card, Empty, ErrorMsg, Input, Loading, Title, tonoPorEstado } from "../components/ui";
 import { minutoDePartido } from "../hooks/useCronometro";
 import { useWakeLock } from "../hooks/useWakeLock";
-import { useMapaEquipos, useMapaJugadores } from "../hooks/useNombres";
+import { useNombresEquiposPartido, useNombresJugadoresPartido } from "../hooks/useNombres";
 import { usePolling } from "../hooks/usePolling";
 import { formatoFechaCorta } from "../utils/fecha";
 
 export function PartidoManagePage(): JSX.Element {
   const { id = "" } = useParams();
   const detalle = usePolling(() => services.partidos.detalle(id), 15_000);
-  const mapaEquipos = useMapaEquipos();
-  const mapaJugadores = useMapaJugadores();
+  const jugadores = useNombresJugadoresPartido(detalle.data);
+  const equipos = useNombresEquiposPartido(detalle.data);
 
   // Mantener la pantalla activa mientras el partido esté en juego y no pausado.
   const pantallaActiva = detalle.data?.estado === "en_juego" && !detalle.data?.pausaDesde;
   useWakeLock(pantallaActiva);
 
-  if (detalle.loading && !detalle.data) return <SkeletonFilas />;
+  if (detalle.loading && !detalle.data) return <Loading />;
   if (detalle.error && !detalle.data) return <ErrorMsg error={detalle.error} onRetry={detalle.refresh} />;
   if (!detalle.data) return <Empty texto="Partido no encontrado." />;
   const p = detalle.data;
+  const mapaJugadores = jugadores.mapa;
+  const mapaEquipos = equipos.mapa;
+  const errorNombres = jugadores.error ?? equipos.error;
+  if (errorNombres) return <ErrorMsg error={errorNombres} onRetry={jugadores.error ? jugadores.refresh : equipos.refresh} />;
+  if (!mapaJugadores || !mapaEquipos) return <Loading />;
 
   return (
     <div className="flex flex-col gap-2">

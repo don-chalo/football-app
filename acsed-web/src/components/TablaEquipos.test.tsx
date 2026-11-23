@@ -29,7 +29,7 @@ describe("TablaEquipos responsive", () => {
 
     await user.click(screen.getByRole("button", { name: "Detalle de Alfa" }));
     const expansion = document.querySelector("td[colspan='5']") as HTMLElement;
-    expect(expansion.textContent?.replace(/s+/g, " ").trim()).toBe("PG 3 · PE 1 · PP 1 · GF 10 · GC 4".replace(/ · /g, " ·"));
+    expect(expansion.textContent?.replace(/s+/g, " ").trim()).toBe("PG 3PE 1PP 1GF 10GC 4%GF –%GC –".replace(/ · /g, " ·"));
 
     await user.click(screen.getByRole("button", { name: "Detalle de Alfa" }));
     expect(document.querySelector("td[colspan='5']")).toBeNull();

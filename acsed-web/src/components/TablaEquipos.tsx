@@ -73,11 +73,15 @@ export function TablaEquipos({ filas, orden, nombreDe }: {
             {expandida[f.equipoId] === true ? (
               <tr className="sm:hidden border-t border-stone-100">
                 <td colSpan={5} className="p-2 text-sm text-stone-600">
-                  <span className="font-bold">PG </span>{f.pg} ·
-                  <span className="font-bold">PE </span>{f.pe} · 
-                  <span className="font-bold">PP </span>{f.pp} · 
-                  <span className="font-bold">GF </span>{f.gf} · 
-                  <span className="font-bold">GC </span>{f.gc}
+                  <div className="flex flex-wrap">
+                    <span className="font-bold border px-1 rounded mr-1 whitespace-nowrap">PG {f.pg}</span>
+                    <span className="font-bold border px-1 rounded mr-1 whitespace-nowrap">PE {f.pe}</span>
+                    <span className="font-bold border px-1 rounded mr-1 whitespace-nowrap">PP {f.pp}</span>
+                    <span className="font-bold border px-1 rounded mr-1 whitespace-nowrap">GF {f.gf}</span>
+                    <span className="font-bold border px-1 rounded mr-1 whitespace-nowrap">GC {f.gc}</span>
+                    <span className="font-bold border px-1 rounded mr-1 whitespace-nowrap">%GF {typeof f.pctGf === "number" ? f.pctGf.toFixed(1) : "–"}</span>
+                    <span className="font-bold border px-1 rounded mr-1 whitespace-nowrap">%GC {typeof f.pctGc === "number" ? f.pctGc.toFixed(1) : "–"}</span>
+                  </div>
                 </td>
               </tr>
             ) : null}
