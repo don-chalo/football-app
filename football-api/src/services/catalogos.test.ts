@@ -40,3 +40,25 @@ describe("jugadores bulk", () => {
     expect(r.errores).toHaveLength(3);
   });
 });
+
+describe("buscar por ids", () => {
+  it("jugadores: devuelve solo los pedidos, sin duplicados, ordenados por nombre", async () => {
+    const repo = new FakeJugadores() as unknown as MongooseJugadoresRepo;
+    const svc = createJugadoresService(repo);
+    const z = await svc.create("Zeta");
+    const a = await svc.create("Alfa");
+    await svc.create("Otro");
+    const r = await svc.buscar([z.id, a.id, z.id]);
+    expect(r.map((j) => j.nombre)).toEqual(["Alfa", "Zeta"]);
+  });
+  it("equipos: ids inexistentes se omiten", async () => {
+    const repo = new FakeEquipos() as unknown as MongooseEquiposRepo;
+    const svc = createEquiposService(repo);
+    const a = await svc.create("A");
+    expect(await svc.buscar([a.id, "666666666666666666666666"])).toEqual([a]);
+  });
+  it("lista vacia devuelve [] sin consultar", async () => {
+    const repo = new FakeEquipos() as unknown as MongooseEquiposRepo;
+    expect(await createEquiposService(repo).buscar([])).toEqual([]);
+  });
+});

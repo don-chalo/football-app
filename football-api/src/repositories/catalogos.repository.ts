@@ -78,6 +78,9 @@ export class MongooseEquiposRepo {
   async list(): Promise<Equipo[]> {
     return (await EquipoModel.find().sort({ nombre: 1 }).lean()).map(mapNombrado);
   }
+  async findByIds(ids: string[]): Promise<Equipo[]> {
+    return (await EquipoModel.find({ _id: { $in: ids } }).sort({ nombre: 1 }).lean()).map(mapNombrado);
+  }
   async create(nombre: string): Promise<Equipo> {
     const d = await EquipoModel.create({ nombre: nombre.trim(), nombreKey: uniqueKey(nombre) });
     return mapNombrado(d.toObject());
@@ -106,6 +109,9 @@ export class MongooseJugadoresRepo {
   }
   async list(): Promise<Jugador[]> {
     return (await JugadorModel.find().sort({ nombre: 1 }).lean()).map(mapNombrado);
+  }
+  async findByIds(ids: string[]): Promise<Jugador[]> {
+    return (await JugadorModel.find({ _id: { $in: ids } }).sort({ nombre: 1 }).lean()).map(mapNombrado);
   }
   async create(nombre: string): Promise<Jugador> {
     const d = await JugadorModel.create({ nombre: nombre.trim(), nombreKey: uniqueKey(nombre) });

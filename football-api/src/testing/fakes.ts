@@ -95,6 +95,9 @@ export class FakeEquipos extends crud<Equipo>() {
   async findByNombre(nombre: string): Promise<Equipo | null> {
     return this.items.find((x) => uniqueKey(x.nombre) === uniqueKey(nombre)) ?? null;
   }
+  async findByIds(ids: string[]): Promise<Equipo[]> {
+    return dup(this.items.filter((x) => ids.includes(x.id)).sort((a, b) => a.nombre.localeCompare(b.nombre)));
+  }
   async create(nombre: string): Promise<Equipo> {
     if (await this.findByNombre(nombre)) throw Object.assign(new Error("dup"), { code: 11000 });
     const e: Equipo = { id: newId(), nombre };
@@ -112,6 +115,9 @@ export class FakeEquipos extends crud<Equipo>() {
 export class FakeJugadores extends crud<Jugador>() {
   async findByNombre(nombre: string): Promise<Jugador | null> {
     return this.items.find((x) => uniqueKey(x.nombre) === uniqueKey(nombre)) ?? null;
+  }
+  async findByIds(ids: string[]): Promise<Jugador[]> {
+    return dup(this.items.filter((x) => ids.includes(x.id)).sort((a, b) => a.nombre.localeCompare(b.nombre)));
   }
   async create(nombre: string): Promise<Jugador> {
     if (await this.findByNombre(nombre)) throw Object.assign(new Error("dup"), { code: 11000 });

@@ -24,6 +24,10 @@ export function createEquiposService(equipos: MongooseEquiposRepo) {
     list(): Promise<Equipo[]> {
       return equipos.list();
     },
+    async buscar(ids: string[]): Promise<Equipo[]> {
+      const unicos = [...new Set(ids)];
+      return unicos.length === 0 ? [] : equipos.findByIds(unicos);
+    },
     async get(id: string): Promise<Equipo> {
       const e = await equipos.findById(id);
       if (!e) throw notFound("Equipo");
@@ -95,6 +99,10 @@ export function createJugadoresService(jugadores: MongooseJugadoresRepo) {
     },
     list(): Promise<Jugador[]> {
       return jugadores.list();
+    },
+    async buscar(ids: string[]): Promise<Jugador[]> {
+      const unicos = [...new Set(ids)];
+      return unicos.length === 0 ? [] : jugadores.findByIds(unicos);
     },
     async get(id: string): Promise<Jugador> {
       const j = await jugadores.findById(id);

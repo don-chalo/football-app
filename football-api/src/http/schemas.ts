@@ -3,6 +3,7 @@ import { TIPOS_EVENTO } from "../domain/types";
 
 export const objectId = z.string().regex(/^[0-9a-fA-F]{24}$/, "Id invalido");
 export const nombre = z.string().trim().min(1, "Nombre requerido").max(120);
+export const idsBuscarSchema = z.object({ ids: z.array(objectId).max(100, "Maximo 100 ids") });
 
 export const roleSchema = z.enum(["admin_partidos", "admin_usuarios"]);
 export const loginSchema = z.object({ username: z.string().min(1), password: z.string().min(1) });

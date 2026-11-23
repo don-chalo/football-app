@@ -13,7 +13,7 @@ import {
   requireLigaAccess,
   type ScopeDeps,
 } from "./middleware/scope";
-import { estadoSchema, pausaSchema, eventoPatchSchema, eventoSchema, convocatoriaBodySchema, convocatoriaPatchSchema, ligaPatchSchema, ligaSchema, loginSchema, nombreSchema, objectId, partidoCreateSchema, partidoPatchSchema, userCreateSchema, userPatchSchema, mvpSchema } from "./schemas";
+import { idsBuscarSchema, estadoSchema, pausaSchema, eventoPatchSchema, eventoSchema, convocatoriaBodySchema, convocatoriaPatchSchema, ligaPatchSchema, ligaSchema, loginSchema, nombreSchema, objectId, partidoCreateSchema, partidoPatchSchema, userCreateSchema, userPatchSchema, mvpSchema } from "./schemas";
 import type { Services } from "./services";
 import type { Actor, Role } from "../repositories/types";
 
@@ -124,6 +124,10 @@ export function buildRouter(s: Services, deps: RouterDeps): Router {
   r.get("/equipos", asyncHandler(async (_req, res) => {
     res.json(await s.equipos.list());
   }));
+  r.post("/equipos/buscar", asyncHandler(async (req, res) => {
+    const body = idsBuscarSchema.parse(req.body);
+    res.json(await s.equipos.buscar(body.ids));
+  }));
   r.post("/equipos", requireAdmin, asyncHandler(async (req, res) => {
     const body = nombreSchema.parse(req.body);
     res.status(201).json(await s.equipos.create(body.nombre));
@@ -151,6 +155,10 @@ export function buildRouter(s: Services, deps: RouterDeps): Router {
   // ---- jugadores (globales, sin scope) ----
   r.get("/jugadores", asyncHandler(async (_req, res) => {
     res.json(await s.jugadores.list());
+  }));
+  r.post("/jugadores/buscar", asyncHandler(async (req, res) => {
+    const body = idsBuscarSchema.parse(req.body);
+    res.json(await s.jugadores.buscar(body.ids));
   }));
   r.post("/jugadores/bulk", requireAdmin, asyncHandler(async (req, res) => {
     const body = z.object({ nombres: z.array(z.string()).min(1).max(500) }).parse(req.body);
