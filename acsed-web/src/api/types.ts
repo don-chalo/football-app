@@ -95,7 +95,12 @@ export interface FilaEquipo {
   gc: number;
   dif: number;
   pts: number;
+  pctGf: number | null;
+  pctGc: number | null;
+  racha: LetraResultado[];
 }
+
+export type LetraResultado = "G" | "E" | "P";
 
 export interface FilaJugador {
   jugadorId: string;
@@ -112,6 +117,12 @@ export interface FilaJugador {
   ausentes: number;
   inasistencia: number;
   jugados: number;
+  promedioGoles: number | null;
+  pctGf: number | null;
+  pctGc: number | null;
+  mvp: number;
+  rachaGoles: number;
+  racha: LetraResultado[];
 }
 
 export interface Historial {

@@ -1,4 +1,5 @@
-import { golesFavorContra, resultadoEquipo } from "./marcador";
+import { golesFavorContra, resultadoEquipo, type ResultadoEquipo } from "./marcador";
+import { letraResultado, promedio, ultimos, type LetraResultado } from "./racha";
 import type { PartidoBase } from "./types";
 
 export interface FilaEquipo {
@@ -11,24 +12,34 @@ export interface FilaEquipo {
   gc: number;
   dif: number;
   pts: number;
+  pctGf: number | null;
+  pctGc: number | null;
+  racha: LetraResultado[];
 }
 
 /** Agrega tabla de equipos (solo partidos finalizados ya filtrados). Pts siempre: 3/1/0. */
 export function buildTabla(partidos: PartidoBase[]): FilaEquipo[] {
   const map = new Map<string, FilaEquipo>();
+  const resultados = new Map<string, Array<{ fecha: Date; r: ResultadoEquipo }>>();
   const fila = (equipoId: string): FilaEquipo => {
     let f = map.get(equipoId);
     if (!f) {
-      f = { equipoId, pj: 0, pg: 0, pe: 0, pp: 0, gf: 0, gc: 0, dif: 0, pts: 0 };
+      f = { equipoId, pj: 0, pg: 0, pe: 0, pp: 0, gf: 0, gc: 0, dif: 0, pts: 0, pctGf: null, pctGc: null, racha: [] };
       map.set(equipoId, f);
     }
     return f;
+  };
+  const registrarResultado = (equipoId: string, fecha: Date, r: ResultadoEquipo): void => {
+    const l = resultados.get(equipoId) ?? [];
+    l.push({ fecha, r });
+    resultados.set(equipoId, l);
   };
 
   for (const p of partidos) {
     const l = golesFavorContra(p.eventos, p.localId, p.localId, p.visitaId);
     const v = golesFavorContra(p.eventos, p.visitaId, p.localId, p.visitaId);
     const rl = resultadoEquipo(l.gf, l.gc);
+    const rv = resultadoEquipo(v.gf, v.gc);
     const fl = fila(p.localId);
     const fv = fila(p.visitaId);
     fl.pj += 1;
@@ -37,6 +48,8 @@ export function buildTabla(partidos: PartidoBase[]): FilaEquipo[] {
     fl.gc += l.gc;
     fv.gf += v.gf;
     fv.gc += v.gc;
+    registrarResultado(p.localId, p.fecha, rl);
+    registrarResultado(p.visitaId, p.fecha, rv);
     if (rl === "PG") {
       fl.pg += 1;
       fv.pp += 1;
@@ -53,6 +66,9 @@ export function buildTabla(partidos: PartidoBase[]): FilaEquipo[] {
     ...f,
     dif: f.gf - f.gc,
     pts: f.pg * 3 + f.pe,
+    pctGf: promedio(f.gf, f.pj),
+    pctGc: promedio(f.gc, f.pj),
+    racha: ultimos(resultados.get(f.equipoId) ?? []).map((x) => letraResultado(x.r)),
   }));
   filas.sort((a, b) => b.pts - a.pts || b.dif - a.dif || b.gf - a.gf || (a.equipoId < b.equipoId ? -1 : 1));
   return filas;

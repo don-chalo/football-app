@@ -1,11 +1,11 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { TablaEquipos } from "./TablaEquipos";
 import type { FilaEquipo } from "../api/types";
 
 const fila: FilaEquipo = {
-  equipoId: "e1", nombre: "Alfa", pj: 5, pg: 3, pe: 1, pp: 1, gf: 10, gc: 4, dif: 6, pts: 10,
+  equipoId: "e1", nombre: "Alfa", pj: 5, pg: 3, pe: 1, pp: 1, gf: 10, gc: 4, dif: 6, pts: 10, pctGf: null, pctGc: null, racha: [],
 };
 
 function renderTabla() {
@@ -23,18 +23,19 @@ describe("TablaEquipos responsive", () => {
     const user = userEvent.setup();
     renderTabla();
 
-    expect(screen.getByText("DIF")).toBeInTheDocument();
+    expect(within(screen.getByRole("table")).getByText("DIF")).toBeInTheDocument();
     expect(screen.getByText("6")).toBeInTheDocument();
     expect(screen.queryByText(/PG 3 · PE 1/)).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Detalle de Alfa" }));
-    expect(screen.getByText("PG 3 · PE 1 · PP 1 · GF 10 · GC 4")).toBeInTheDocument();
+    const expansion = document.querySelector("td[colspan='5']") as HTMLElement;
+    expect(expansion.textContent?.replace(/s+/g, " ").trim()).toBe("PG 3 · PE 1 · PP 1 · GF 10 · GC 4".replace(/ · /g, " ·"));
 
     await user.click(screen.getByRole("button", { name: "Detalle de Alfa" }));
-    expect(screen.queryByText(/PG 3 · PE 1/)).not.toBeInTheDocument();
+    expect(document.querySelector("td[colspan='5']")).toBeNull();
   });
 
-  it("muestra % con tooltip y ordena por rendimiento", async () => {
+  it("muestra % y ordena por rendimiento", async () => {
     const user = userEvent.setup();
     const alternar = vi.fn();
     render(
@@ -46,8 +47,7 @@ describe("TablaEquipos responsive", () => {
     );
 
     expect(screen.getByText("66.7")).toBeInTheDocument();
-    const th = screen.getByTitle("% de rendimiento");
-    expect(th).toHaveTextContent("%");
+    const th = screen.getByRole("button", { name: "%" });
     await user.click(th);
     expect(alternar).toHaveBeenCalledWith("rend");
   });

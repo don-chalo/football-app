@@ -41,7 +41,7 @@ async function baseFiltrada(d: Deps, f: FiltrosBase, partidoId?: string): Promis
     .filter((p) => !ligaIds || ligaIds.includes(p.ligaId))
     .filter((p) => p.fecha >= rango.desde && p.fecha <= rango.hasta)
     .filter((p) => !partidoId || p.id === partidoId)
-    .map((p) => ({ id: p.id, ligaId: p.ligaId, localId: p.localId, visitaId: p.visitaId, fecha: p.fecha, estado: p.estado, eventos: [] }));
+    .map((p) => ({ id: p.id, ligaId: p.ligaId, localId: p.localId, visitaId: p.visitaId, fecha: p.fecha, estado: p.estado, mvpJugadorId: p.mvpJugadorId ?? null, eventos: [] }));
 }
 
 export function createEstadisticasService(d: Deps) {

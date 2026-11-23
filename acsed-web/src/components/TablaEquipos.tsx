@@ -3,6 +3,8 @@ import type { FilaEquipo } from "../api/types";
 import type { Orden, OrdenKey } from "../hooks/useOrden";
 import { rendimiento } from "../utils/rendimiento";
 import { SortTH } from "./SortTH";
+import { Racha } from "./Racha";
+import { LEYENDA_EQUIPOS, LeyendaColumnas } from "./LeyendaColumnas";
 
 /**
  * Tabla de posiciones responsive: en movil muestra Equipo/PJ/DIF/Pts
@@ -17,25 +19,28 @@ export function TablaEquipos({ filas, orden, nombreDe }: {
   const [expandida, setExpandida] = useState<Record<string, boolean>>({});
   const extra = "hidden sm:table-cell";
   return (
+    <>
     <table className="w-full text-sm text-neutral-800">
       <thead>
         <tr>
           <SortTH col="nombre" label="Equipo" orden={orden.orden} onOrdenar={orden.alternar} align="left" />
           <SortTH col="pj" label="PJ" orden={orden.orden} onOrdenar={orden.alternar} />
-          <SortTH col="dif" label="DIF" orden={orden.orden} onOrdenar={orden.alternar} />
           <SortTH col="pg" label="PG" orden={orden.orden} onOrdenar={orden.alternar} className={extra} />
           <SortTH col="pe" label="PE" orden={orden.orden} onOrdenar={orden.alternar} className={extra} />
           <SortTH col="pp" label="PP" orden={orden.orden} onOrdenar={orden.alternar} className={extra} />
           <SortTH col="gf" label="GF" orden={orden.orden} onOrdenar={orden.alternar} className={extra} />
           <SortTH col="gc" label="GC" orden={orden.orden} onOrdenar={orden.alternar} className={extra} />
-          <SortTH col="rend" label="%" hint="% de rendimiento" orden={orden.orden} onOrdenar={orden.alternar} />
+          <SortTH col="dif" label="DIF" orden={orden.orden} onOrdenar={orden.alternar} />
+          <SortTH col="rend" label="%" orden={orden.orden} onOrdenar={orden.alternar} />
+          <SortTH col="pctGf" label="%GF" orden={orden.orden} onOrdenar={orden.alternar} className="hidden sm:table-cell" />
+          <SortTH col="pctGc" label="%GC" orden={orden.orden} onOrdenar={orden.alternar} className="hidden sm:table-cell" />
           <SortTH col="pts" label="Pts" orden={orden.orden} onOrdenar={orden.alternar} />
         </tr>
       </thead>
       <tbody>
         {filas.map((f) => (
           <Fragment key={f.equipoId}>
-            <tr className="border-t border-stone-100">
+            <tr className="border-t border-stone-300 last-of-type:border-b">
               <td className="p-2 font-medium">
                 <button
                   type="button"
@@ -49,21 +54,30 @@ export function TablaEquipos({ filas, orden, nombreDe }: {
                   </span>
                   {nombreDe(f)}
                 </button>
+                <div className="mt-0.5">
+                  <Racha racha={f.racha} />
+                </div>
               </td>
               <td className="p-2 text-center">{f.pj}</td>
-              <td className="p-2 text-center">{f.dif}</td>
               <td className={`p-2 text-center ${extra}`}>{f.pg}</td>
               <td className={`p-2 text-center ${extra}`}>{f.pe}</td>
               <td className={`p-2 text-center ${extra}`}>{f.pp}</td>
               <td className={`p-2 text-center ${extra}`}>{f.gf}</td>
               <td className={`p-2 text-center ${extra}`}>{f.gc}</td>
+              <td className="p-2 text-center">{f.dif}</td>
               <td className="p-2 text-center tabular-nums">{rendimiento(f.pg, f.pe, f.pj)}</td>
+              <td className={`p-2 text-center tabular-nums ${extra}`}>{typeof f.pctGf === "number" ? f.pctGf.toFixed(1) : "–"}</td>
+              <td className={`p-2 text-center tabular-nums ${extra}`}>{typeof f.pctGc === "number" ? f.pctGc.toFixed(1) : "–"}</td>
               <td className="p-2 text-center font-bold">{f.pts}</td>
             </tr>
             {expandida[f.equipoId] === true ? (
               <tr className="sm:hidden border-t border-stone-100">
                 <td colSpan={5} className="p-2 text-sm text-stone-600">
-                  PG {f.pg} · PE {f.pe} · PP {f.pp} · GF {f.gf} · GC {f.gc}
+                  <span className="font-bold">PG </span>{f.pg} ·
+                  <span className="font-bold">PE </span>{f.pe} · 
+                  <span className="font-bold">PP </span>{f.pp} · 
+                  <span className="font-bold">GF </span>{f.gf} · 
+                  <span className="font-bold">GC </span>{f.gc}
                 </td>
               </tr>
             ) : null}
@@ -71,5 +85,8 @@ export function TablaEquipos({ filas, orden, nombreDe }: {
         ))}
       </tbody>
     </table>
+    <div className="border-b-2 border-cancha-600 my-4"></div>
+    <LeyendaColumnas entradas={LEYENDA_EQUIPOS} />
+    </>
   );
 }

@@ -1,4 +1,5 @@
 import { cuentaComoGoleador, golesFavorContra, resultadoEquipo } from "./marcador";
+import { letraResultado, promedio, ultimos, type LetraResultado } from "./racha";
 import type { ConvocatoriaBase, PartidoBase } from "./types";
 
 export interface FilaJugador {
@@ -15,11 +16,27 @@ export interface FilaJugador {
   ausentes: number;
   inasistencia: number;
   jugados: number;
+  promedioGoles: number | null;
+  pctGf: number | null;
+  pctGc: number | null;
+  mvp: number;
+  rachaGoles: number;
+  racha: LetraResultado[];
+}
+
+interface ParticipacionJugador {
+  partidoId: string;
+  fecha: Date;
+  resultado: ReturnType<typeof resultadoEquipo>;
+  gf: number;
+  gc: number;
+  golesJugador: number;
 }
 
 /**
  * Stats por jugador. PJ/PG/PE/PP = resultado del equipo POR el que jugo
  * en cada partido donde estuvo presente (convocado no ausente).
+ * Racha = ultimos 5 partidos presentes, de cualquier equipo.
  */
 export function buildJugadores(
   partidos: PartidoBase[],
@@ -27,6 +44,7 @@ export function buildJugadores(
 ): FilaJugador[] {
   const partidosPorId = new Map(partidos.map((p) => [p.id, p]));
   const map = new Map<string, FilaJugador>();
+  const participaciones = new Map<string, ParticipacionJugador[]>();
   const fila = (jugadorId: string): FilaJugador => {
     let f = map.get(jugadorId);
     if (!f) {
@@ -44,6 +62,12 @@ export function buildJugadores(
         ausentes: 0,
         inasistencia: 0,
         jugados: 0,
+        promedioGoles: null,
+        pctGf: null,
+        pctGc: null,
+        mvp: 0,
+        rachaGoles: 0,
+        racha: [],
       };
       map.set(jugadorId, f);
     }
@@ -66,19 +90,44 @@ export function buildJugadores(
     if (r === "PG") f.pg += 1;
     else if (r === "PE") f.pe += 1;
     else f.pp += 1;
+    let golesJugador = 0;
     for (const e of p.eventos) {
       if (e.jugadorId !== c.jugadorId || e.equipoId !== c.equipoId) continue;
-      if (cuentaComoGoleador(e.tipo)) f.goles += 1;
-      else if (e.tipo === "autogol") f.autogoles += 1;
+      if (cuentaComoGoleador(e.tipo)) {
+        f.goles += 1;
+        golesJugador += 1;
+      } else if (e.tipo === "autogol") f.autogoles += 1;
       else if (e.tipo === "amarilla") f.amarillas += 1;
       else if (e.tipo === "roja") f.rojas += 1;
     }
+    const lista = participaciones.get(c.jugadorId) ?? [];
+    lista.push({ partidoId: p.id, fecha: p.fecha, resultado: r, gf, gc, golesJugador });
+    participaciones.set(c.jugadorId, lista);
+    if (p.mvpJugadorId === c.jugadorId) f.mvp += 1;
   }
 
   for (const f of map.values()) {
     f.inasistencia = f.convocados === 0 ? 0 : Math.round((f.ausentes / f.convocados) * 1000) / 10;
+    const parts = participaciones.get(f.jugadorId) ?? [];
+    const sumGf = parts.reduce((acc, x) => acc + x.gf, 0);
+    const sumGc = parts.reduce((acc, x) => acc + x.gc, 0);
+    f.promedioGoles = promedio(f.goles, f.pj);
+    f.pctGf = promedio(sumGf, f.pj);
+    f.pctGc = promedio(sumGc, f.pj);
+    f.racha = ultimos(parts).map((x) => letraResultado(x.resultado));
+    f.rachaGoles = rachaConsecutiva(parts);
   }
   const filas = [...map.values()];
   filas.sort((a, b) => b.goles - a.goles || b.pj - a.pj || (a.jugadorId < b.jugadorId ? -1 : 1));
   return filas;
+}
+
+/** Partidos consecutivos con al menos 1 gol, desde el mas reciente. Cualquier partido sin gol corta la racha. */
+function rachaConsecutiva(parts: ParticipacionJugador[]): number {
+  let n = 0;
+  for (const x of ultimos(parts, parts.length)) {
+    if (x.golesJugador < 1) break;
+    n += 1;
+  }
+  return n;
 }

@@ -44,3 +44,9 @@ Flujo habitual: `Propuesta` → `Aprobada` → `En desarrollo` → `Terminada`. 
 |---|---|---|---|
 | HU-MVP-01 | Registrar el MVP del partido finalizado | Terminada | [20261121-HU-MVP-01.md](20261121-HU-MVP-01.md) |
 | HU-MVP-02 | Visualización del MVP en el detalle del partido | Terminada | [20261122-HU-MVP-02.md](20261122-HU-MVP-02.md) |
+
+### EST
+
+| ID | Historia | Estado | Archivo |
+|---|---|---|---|
+| HU-EST-01 | Nuevas estadísticas en las tablas de equipos y jugadores | Terminada | [20261122-HU-EST-01.md](20261122-HU-EST-01.md) |

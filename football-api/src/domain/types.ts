@@ -19,6 +19,8 @@ export interface PartidoBase {
   visitaId: string;
   fecha: Date;
   estado: EstadoPartido;
+  /** MVP del partido (HU-MVP-01). Opcional: sin MVP o no cargado. */
+  mvpJugadorId?: string | null;
   eventos: EventoBase[];
 }
 
