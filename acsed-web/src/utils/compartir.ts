@@ -36,7 +36,14 @@ function bloqueGolesGeneral(eventos: Evento[], jugadores: Map<string, string>): 
 
 /** Cuerpo estilo finalizado: goles + tarjetas + penales. Desde la línea 3, en juego usa la misma lógica. */
 function cuerpoFinalizado(detalle: PartidoDetalle, jugadores: Map<string, string>): string[] {
-  const lineas = [...bloqueGolesGeneral(detalle.eventos, jugadores)];
+  // Línea del MVP para partidos finalizados
+  const mvpLine = detalle.estado === "finalizado" && detalle.mvpJugadorId !== null
+    ? `*MVP: ${jugadores.get(detalle.mvpJugadorId) ?? "?"}*`
+    : null;
+
+  const lineas = mvpLine !== null
+    ? [mvpLine, "", ...bloqueGolesGeneral(detalle.eventos, jugadores)]
+    : [...bloqueGolesGeneral(detalle.eventos, jugadores)];
 
   const amarillasPorJugador = new Map<string, number>();
   const rojasPorJugador = new Map<string, number>();
@@ -73,7 +80,7 @@ export function textoResultado(detalle: PartidoDetalle, nombres: NombresComparti
   const local = (nombres.equipos.get(detalle.localId) ?? "?").toUpperCase();
   const visita = (nombres.equipos.get(detalle.visitaId) ?? "?").toUpperCase();
   const lineas = [
-    `${local} ${detalle.marcador.local.toString()} - ${detalle.marcador.visita.toString()} ${visita}`,
+    `*${local} ${detalle.marcador.local.toString()} - ${detalle.marcador.visita.toString()} ${visita}*`,
     `${nombres.liga} · ${formatoFechaCorta(detalle.fecha)}`,
     "",
     ...cuerpoFinalizado(detalle, nombres.jugadores),
